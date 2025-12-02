@@ -1,19 +1,23 @@
 import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 // --- GLSL shaders ------------------------------------------------------
 
-import vertexShader from "./shaders/vertex.glsl";
-import fragmentShader from "./shaders/fragment.glsl";
-
+import watervertex from "./shaders/watervertex.glsl";
+import waterfragment from "./shaders/waterfragment.glsl";
+import wirefragment from "./shaders/wirefragment.glsl";
 // --- Three.js setup ----------------------------------------------------
 
 const canvas = document.querySelector("#webgl");
 const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xffffff);
 
 const size = 16;
 const res = 256;
 const watergeo = new THREE.PlaneGeometry(size, size, res, res);
 const wiregeo = new THREE.WireframeGeometry(watergeo);
+
+const tintcolor = 0xffffff;
 
 const uniforms = {
   time:   { value: 0.0 },
@@ -23,23 +27,26 @@ const uniforms = {
   freq2:  { value: 1.5 },
   speed1: { value: 0.1 },
   speed2: { value: 0.2 },
+
+  fogColor: { value: new THREE.Color(tintcolor) },
+  fogDensity: { value: 0.08 },
 };
 
 const watermat = new THREE.ShaderMaterial({
-  vertexShader,
-  fragmentShader,
+  vertexShader: watervertex,
+  fragmentShader: waterfragment,
   uniforms,
+  fog: true,
   transparent: false,
   depthWrite: true,
+  extensions: { derivatives: true },
 });
 
 const wiremat = new THREE.ShaderMaterial({
-  vertexShader,
-  fragmentShader: `
-    varying float vHeight;
-    void main() { gl_FragColor = vec4(vec3(1.0), 1.0); }
-  `,
+  vertexShader: watervertex,
+  fragmentShader: wirefragment,
   uniforms,
+  fog: true,
   transparent: true,
   depthWrite: false,
 })
@@ -53,6 +60,8 @@ watersurf.add(mesh);
 watersurf.rotation.z = -Math.PI / 8;
 scene.add(watersurf);
 
+// Fog
+scene.fog = new THREE.FogExp2(tintcolor, 0.08);
 
 // Camera
 const camera = new THREE.PerspectiveCamera(
@@ -61,7 +70,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.set(0, -3, 0.25);
+camera.position.set(0, -3, 1);
 camera.lookAt(0, 0, 0);
 scene.add(camera);
 
@@ -73,6 +82,11 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setClearColor(0x020617);
+
+// Controls
+// const controls = new OrbitControls(camera, renderer.domElement);
+// controls.target.set(0, 0, 0);
+// controls.enableDamping = true;
 
 // Handle resize
 window.addEventListener("resize", () => {
@@ -88,6 +102,7 @@ const clock = new THREE.Clock();
 function tick() {
   uniforms.time.value = clock.getElapsedTime();
 
+  //controls.update();
   renderer.render(scene, camera);
   requestAnimationFrame(tick);
 }
