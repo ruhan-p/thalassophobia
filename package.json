@@ -10,5 +10,10 @@
   },
   "devDependencies": {
     "vite": "^7.2.4"
+  },
+  "dependencies": {
+    "simplex-noise": "^4.0.3",
+    "three": "^0.181.2",
+    "three-fatline": "^0.7.1"
   }
 }
