@@ -19,7 +19,12 @@ const wiregeo = new THREE.WireframeGeometry(watergeo);
 
 const tintcolor = 0xffffff;
 
+function RgbToVec3(r, g, b) {
+  return new THREE.Vector3(r / 255, g / 255, b / 255);
+}
+
 const uniforms = {
+  
   time:   { value: 0.0 },
   amp1:   { value: 0.2 },
   amp2:   { value: 0.15 },
@@ -48,7 +53,7 @@ const wiremat = new THREE.ShaderMaterial({
   uniforms,
   fog: true,
   transparent: true,
-  depthWrite: false,
+  depthWrite: false
 })
 
 const mesh = new THREE.Mesh(watergeo, watermat);
@@ -59,6 +64,11 @@ watersurf.add(mesh);
 //watersurf.add(wire);
 watersurf.rotation.z = -Math.PI / 8;
 scene.add(watersurf);
+
+// Light
+const ambientlight = new THREE.AmbientLight(0xffffff, 0.5);
+ambientlight.position.set(0, 0, 8);
+scene.add(ambientlight);
 
 // Fog
 scene.fog = new THREE.FogExp2(tintcolor, 0.08);
