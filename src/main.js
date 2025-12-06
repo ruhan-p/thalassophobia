@@ -20,25 +20,34 @@ function RgbToVec3(r, g, b) {
   return new THREE.Vector3(r / 255, g / 255, b / 255);
 }
 
-const tintcolor = 0x444444;
+const tintcolor = 0x35354A;
 scene.background = new THREE.Color(tintcolor);
-
 
 const customUniforms = {
   time:   { value: 0.0 },
-  amp1:   { value: 0.75 },
-  amp2:   { value: 0.15 },
-  amp3: { value: 0.1 },
-  freq1:  { value: 0.75 },
-  freq2:  { value: 1.5 },
-  freq3: { value: 1.0 },
-  speed1: { value: 0.1 },
-  speed2: { value: 0.2 },
-  speed3: { value: 0.2 },
-  steep: { value: 0.8 },
+  amp1:   { value: 2.0 },
+  freq1:  { value: 0.3 },
+  speed1: { value: 0.25 },
 
-  color1: { value: RgbToVec3(47, 52, 68) },
-  color2: { value: RgbToVec3(134, 142, 163) },
+  amp2:   { value: 0.6 },
+  freq2:  { value: 1.5 },
+  speed2: { value: 0.5 },
+
+  amp3: { value: 0.06 },
+  freq3: { value: 1.0 },
+  speed3: { value: 1.2 },
+
+  amp4: { value: 0.04 },
+  freq4: { value: 1.0 },
+  speed4: { value: 1.5 },
+
+  steep: { value: 1.0 },
+
+  color1: { value: RgbToVec3(255, 0, 0) },
+  color2: { value: RgbToVec3(0, 255, 0) },
+
+  // color1: { value: RgbToVec3(0, 0, 0) },
+  // color2: { value: RgbToVec3(53, 53, 74) },
 
   fogColor: { value: new THREE.Color(tintcolor) },
   fogDensity: { value: 0.08 },
@@ -81,7 +90,7 @@ light.position.set(-5, 0, 5);
 scene.add(light);
 
 // Fog
-scene.fog = new THREE.FogExp2(tintcolor, 0.15);
+//scene.fog = new THREE.FogExp2(tintcolor, 0.15);
 
 // Camera
 const camera = new THREE.PerspectiveCamera(
