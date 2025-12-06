@@ -10,32 +10,41 @@ import wirefragment from "./shaders/wirefragment.glsl";
 
 const canvas = document.querySelector("#webgl");
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xffffff);
 
 const size = 16;
-const res = 256;
+const res = 512;
 const watergeo = new THREE.PlaneGeometry(size, size, res, res);
 const wiregeo = new THREE.WireframeGeometry(watergeo);
-
-const tintcolor = 0xffffff;
 
 function RgbToVec3(r, g, b) {
   return new THREE.Vector3(r / 255, g / 255, b / 255);
 }
 
-const uniforms = {
-  
+const tintcolor = 0x444444;
+scene.background = new THREE.Color(tintcolor);
+
+
+const customUniforms = {
   time:   { value: 0.0 },
-  amp1:   { value: 0.2 },
+  amp1:   { value: 0.75 },
   amp2:   { value: 0.15 },
+  amp3: { value: 0.1 },
   freq1:  { value: 0.75 },
   freq2:  { value: 1.5 },
+  freq3: { value: 1.0 },
   speed1: { value: 0.1 },
   speed2: { value: 0.2 },
+  speed3: { value: 0.2 },
+  steep: { value: 0.8 },
+
+  color1: { value: RgbToVec3(47, 52, 68) },
+  color2: { value: RgbToVec3(134, 142, 163) },
 
   fogColor: { value: new THREE.Color(tintcolor) },
   fogDensity: { value: 0.08 },
 };
+
+const uniforms = THREE.UniformsUtils.merge([THREE.UniformsLib.lights, customUniforms]);
 
 const watermat = new THREE.ShaderMaterial({
   vertexShader: watervertex,
@@ -44,6 +53,7 @@ const watermat = new THREE.ShaderMaterial({
   fog: true,
   transparent: false,
   depthWrite: true,
+  lights: true,
   extensions: { derivatives: true },
 });
 
@@ -66,12 +76,12 @@ watersurf.rotation.z = -Math.PI / 8;
 scene.add(watersurf);
 
 // Light
-const ambientlight = new THREE.AmbientLight(0xffffff, 0.5);
-ambientlight.position.set(0, 0, 8);
-scene.add(ambientlight);
+const light = new THREE.DirectionalLight(0xcccccc, 0.8);
+light.position.set(-5, 0, 5);
+scene.add(light);
 
 // Fog
-scene.fog = new THREE.FogExp2(tintcolor, 0.08);
+scene.fog = new THREE.FogExp2(tintcolor, 0.15);
 
 // Camera
 const camera = new THREE.PerspectiveCamera(
@@ -80,7 +90,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.set(0, -3, 1);
+camera.position.set(0, -3, 0.25);
 camera.lookAt(0, 0, 0);
 scene.add(camera);
 
@@ -94,9 +104,9 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setClearColor(0x020617);
 
 // Controls
-// const controls = new OrbitControls(camera, renderer.domElement);
-// controls.target.set(0, 0, 0);
-// controls.enableDamping = true;
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0, 0);
+controls.enableDamping = true;
 
 // Handle resize
 window.addEventListener("resize", () => {
