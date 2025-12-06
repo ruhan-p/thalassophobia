@@ -24,24 +24,15 @@ const tintcolor = 0x35354A;
 scene.background = new THREE.Color(tintcolor);
 
 const customUniforms = {
-  time:   { value: 0.0 },
-  amp1:   { value: 2.0 },
-  freq1:  { value: 0.3 },
-  speed1: { value: 0.25 },
 
-  amp2:   { value: 0.6 },
-  freq2:  { value: 1.5 },
-  speed2: { value: 0.5 },
-
-  amp3: { value: 0.06 },
-  freq3: { value: 1.0 },
-  speed3: { value: 1.2 },
-
-  amp4: { value: 0.04 },
-  freq4: { value: 1.0 },
-  speed4: { value: 1.5 },
-
-  steep: { value: 1.0 },
+  uTime: { value: 0.0 },
+  uBigWavesElevation: { value: 0.16 },
+  uBigWavesFrequency: { value: 4 },
+  uBigWavesSpeed: { value: 3 },
+  uSmallWavesElevation: { value: 0.15},
+  uSmallWavesFrequency: { value: 3 },
+  uSmallWavesSpeed: { value: 0.14 },
+  uSmallIterations: { value: 5 },
 
   color1: { value: RgbToVec3(255, 0, 0) },
   color2: { value: RgbToVec3(0, 255, 0) },
@@ -129,7 +120,7 @@ window.addEventListener("resize", () => {
 const clock = new THREE.Clock();
 
 function tick() {
-  uniforms.time.value = clock.getElapsedTime();
+  uniforms.uTime.value = clock.getElapsedTime();
 
   //controls.update();
   renderer.render(scene, camera);
