@@ -27,6 +27,7 @@ export default `
   varying vec3 vWorldPos;
   varying float vHeight;
   varying vec3 vNormal;
+  varying float vSlope;
 
   #include <fog_pars_vertex>
 
@@ -197,6 +198,8 @@ export default `
       vec3 bitangent = normalize(vec3(0.0, delta, hY));
       vec3 displacedNormal = normalize(cross(tangent, bitangent));
 
+      // Store slope magnitude for foam/crest detection in fragment shader.
+      vSlope = length(vec2(hX, hY));
       vHeight = height;
       vPos = position.xy;
       vWorldPos = (modelMatrix * vec4(pos, 1.0)).xyz;
