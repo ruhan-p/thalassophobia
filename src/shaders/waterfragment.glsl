@@ -28,10 +28,22 @@ export default `
 
   void main() {
     float h = clamp(vHeight + 1.0, 0.0, 1.0);
-    vec3 color = mix(color1, color2, h);
+    vec3 baseColor = mix(color1, color2, h);
 
     vec3 normal = normalize(vNormal);
+    // Small ripples perturb the shading normal so lighting catches more motion.
+    vec2 rippleUV = vWorldPos.xy * 0.1 + vec2(time * 0.35, time * 0.25);
+    float ripple = valueNoise(rippleUV);
+    vec3 rippleNormal = normalize(vec3(dFdx(ripple), dFdy(ripple), 0.35));
+    normal = normalize(mix(normal, rippleNormal, 0.35));
+
+    vec3 viewDir = normalize(cameraPosition - vWorldPos);
+    float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 3.0);
+    float absorption = exp(-abs(vHeight) * 0.8);
+    vec3 bodyColor = mix(color2, baseColor, absorption);
+
     vec3 lighting = ambientLightColor;
+    vec3 specular = vec3(0.0);
 
     #if NUM_DIR_LIGHTS > 0
     for (int i = 0; i < NUM_DIR_LIGHTS; i++) {
@@ -39,6 +51,10 @@ export default `
       vec3 lcolor = directionalLights[i].color;
       float diffuseFactor = max(dot(normal, dir), 0.0);
       lighting += lcolor * diffuseFactor;
+
+      vec3 halfDir = normalize(dir + viewDir);
+      float spec = pow(max(dot(normal, halfDir), 0.0), 96.0);
+      specular += lcolor * spec * 10.0;
     }
     #endif
 
@@ -55,10 +71,20 @@ export default `
       }
 
       lighting += pointLights[i].color * diffuseFactor * attenuation;
+
+      vec3 halfDir = normalize(lightDir + viewDir);
+      float spec = pow(max(dot(normal, halfDir), 0.0), 72.0);
+      specular += pointLights[i].color * spec * attenuation * 0.6;
     }
     #endif
 
-    vec3 finalColor = color * lighting;
+    vec3 lit = bodyColor * lighting;
+
+    // Simple sky reflection driven by the view angle.
+    float up = clamp(normal.z * 0.5 + 0.5, 0.0, 1.0);
+    vec3 reflection = mix(fogColor, vec3(0.58, 0.68, 0.78), up) * fresnel;
+    vec3 finalColor = lit + reflection + specular;
+
     // Screen-space slope change helps catch interfering waves, while raw slope
     // captures big crests. Both feed the foam mask.
     float slopeFoam = smoothstep(0.05, 0.15, vSlope);
