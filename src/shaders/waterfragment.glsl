@@ -5,6 +5,7 @@ export default `
   varying float vHeight;
   varying vec3  vWorldPos;
   varying vec3  vNormal;
+  varying float vSlope;
   #include <common>
   #include <fog_pars_fragment>
   #include <lights_pars_begin>
@@ -42,7 +43,21 @@ export default `
     #endif
 
     vec3 finalColor = color * lighting;
-    gl_FragColor = vec4(finalColor, 1.0);
+    // Screen-space slope change helps catch interfering waves, while raw slope
+    // captures big crests. Both feed the foam mask.
+    float slopeFoam = smoothstep(0.2, 0.8, vSlope);
+
+    // Make collision foam cover more area and contribute more.
+    float collisionRaw = fwidth(vSlope) * 4.0;
+    float collisionFoam = smoothstep(0.0, 0.08, collisionRaw); // lower start, higher end
+    collisionFoam = pow(collisionFoam, 0.6); // flatter curve = thicker bands
+
+    float foam = clamp(slopeFoam + collisionFoam * 1.25, 0.0, 1.0);
+    foam = smoothstep(0.08, 0.75, foam); // relax final squeeze
+
+
+    vec3 foamed = mix(finalColor, vec3(1.0), foam); 
+    gl_FragColor = vec4(foamed, 1.0);
     #include <fog_fragment>
   }
 `;
