@@ -1,36 +1,51 @@
 export default `
-  uniform float uTime;
+  uniform float time;
 
-  uniform float uBigWavesElevation;
-  uniform vec2  uBigWavesFrequency;
-  uniform float uBigWavesSpeed;
+  // Big swells (mapped from your existing uniforms)
+  uniform float amp1;
+  uniform float amp2;
+  uniform float freq1;
+  uniform float freq2;
+  uniform float speed1;
+  uniform float speed2;
 
-  uniform float uSmallWavesElevation;
-  uniform float uSmallWavesFrequency;
-  uniform float uSmallWavesSpeed;
-  uniform float uSmallIterations;
+  // Small choppy details (mapped from your existing uniforms)
+  uniform float amp3;
+  uniform float amp4;
+  uniform float freq3;
+  uniform float freq4;
+  uniform float speed3;
+  uniform float speed4;
 
-  varying float vElevation;
+  // Used here as an extra "chop intensity" multiplier
+  uniform float steep;
+
+  // NEW: number of small-wave noise iterations (1..10)
+  uniform float smallIterations;
+
+  varying vec2 vPos;
+  varying vec3 vWorldPos;
   varying float vHeight;
   varying vec3 vNormal;
+
   #include <fog_pars_vertex>
 
-  // Classic Perlin 3D Noise by Stefan Gustavson
-  vec4 permute(vec4 x)
-  {
+  // ---------------------------------------------
+  // Classic Perlin 3D Noise (Stefan Gustavson)
+  // ---------------------------------------------
+  vec4 permute(vec4 x) {
       return mod(((x * 34.0) + 1.0) * x, 289.0);
   }
-  vec4 taylorInvSqrt(vec4 r)
-  {
+
+  vec4 taylorInvSqrt(vec4 r) {
       return 1.79284291400159 - 0.85373472095314 * r;
   }
-  vec3 fade(vec3 t)
-  {
+
+  vec3 fade(vec3 t) {
       return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
   }
 
-  float cnoise(vec3 P)
-  {
+  float cnoise(vec3 P) {
       vec3 Pi0 = floor(P);
       vec3 Pi1 = Pi0 + vec3(1.0);
       Pi0 = mod(Pi0, 289.0);
@@ -111,40 +126,86 @@ export default `
       return 2.2 * n_xyz;
   }
 
-  void main()
-  {
-      vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+  // ---------------------------------------------
+  // Big swells
+  // "Raging sea" big-wave core, but using your 1 & 2 sets
+  // ---------------------------------------------
+  float getBigWave(vec2 p) {
+      float w1 =
+          sin(p.x * freq1 + time * speed1) *
+          sin(p.y * freq1 + time * speed1) *
+          amp1;
 
-      // Big swells
-      float bigWave =
-          sin(modelPosition.x * uBigWavesFrequency.x + uTime * uBigWavesSpeed) *
-          sin(modelPosition.z * uBigWavesFrequency.y + uTime * uBigWavesSpeed) *
-          uBigWavesElevation;
+      float w2 =
+          sin(p.x * freq2 - time * speed2) *
+          sin(p.y * freq2 - time * speed2) *
+          amp2;
 
-      // Small choppy details (multi-octave style loop)
-      float smallWave = 0.0;
-      for(float i = 1.0; i <= 10.0; i++)
-      {
-          if(i > uSmallIterations) break;
+      return w1 + w2;
+  }
 
-          float noise = cnoise(vec3(
-              modelPosition.xz * uSmallWavesFrequency * i,
-              uTime * uSmallWavesSpeed
+  // ---------------------------------------------
+  // Small choppy details
+  // Multi-iteration Perlin chop using your 3 & 4 sets
+  // ---------------------------------------------
+  float getSmallWave(vec2 p) {
+      float small = 0.0;
+      float iters = clamp(smallIterations, 1.0, 10.0);
+
+      for (float i = 1.0; i <= 10.0; i++) {
+          if (i > iters) break;
+
+          float n3 = cnoise(vec3(
+              p * freq3 * i,
+              time * speed3
           ));
 
-          // Using abs + divide by i to tighten higher frequencies
-          smallWave -= abs(noise) * (uSmallWavesElevation / i);
+          float n4 = cnoise(vec3(
+              p * freq4 * i,
+              time * speed4
+          ));
+
+          small -= abs(n3) * (amp3 / i);
+          small -= abs(n4) * (amp4 / i);
       }
 
-      float elevation = bigWave + smallWave;
+      // "steep" here acts as extra storm-chop intensity
+      float s = clamp(steep, 0.0, 3.0);
+      small *= mix(1.0, 1.35, clamp(s / 2.5, 0.0, 1.0));
 
-      modelPosition.y += elevation;
+      return small;
+  }
 
-      vec4 viewPosition = viewMatrix * modelPosition;
-      vec4 projectedPosition = projectionMatrix * viewPosition;
-      gl_Position = projectedPosition;
+  float getHeight(vec2 p) {
+      return getBigWave(p) + getSmallWave(p);
+  }
 
-      vElevation = elevation;
+  void main() {
+      vec3 pos = position;
+
+      float height = getHeight(pos.xy);
+      pos.z += height;
+
+      // Normal from finite differences on combined height.
+      // Use forward differences to cut expensive height evaluations
+      // (important when smallIterations is high).
+      float delta = 0.05;
+      float hX = getHeight(pos.xy + vec2(delta, 0.0)) - height;
+      float hY = getHeight(pos.xy + vec2(0.0, delta)) - height;
+
+      vec3 tangent = normalize(vec3(delta, 0.0, hX));
+      vec3 bitangent = normalize(vec3(0.0, delta, hY));
+      vec3 displacedNormal = normalize(cross(tangent, bitangent));
+
+      vHeight = height;
+      vPos = position.xy;
+      vWorldPos = (modelMatrix * vec4(pos, 1.0)).xyz;
+      vNormal = normalize(normalMatrix * displacedNormal);
+
+      vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+      gl_Position = projectionMatrix * mvPosition;
+
+      #include <fog_vertex>
   }
 `;
 // export default `

@@ -20,25 +20,41 @@ function RgbToVec3(r, g, b) {
   return new THREE.Vector3(r / 255, g / 255, b / 255);
 }
 
-const tintcolor = 0x35354A;
+const tintcolor = 0x373F45;
 scene.background = new THREE.Color(tintcolor);
 
 const customUniforms = {
 
-  uTime: { value: 0.0 },
-  uBigWavesElevation: { value: 0.16 },
-  uBigWavesFrequency: { value: 4 },
-  uBigWavesSpeed: { value: 3 },
-  uSmallWavesElevation: { value: 0.15},
-  uSmallWavesFrequency: { value: 3 },
-  uSmallWavesSpeed: { value: 0.14 },
-  uSmallIterations: { value: 5 },
+  time: { value: 0.0 },
+  amp1: { value: 0.6 },
+  amp2: { value: 0.5 },
+  freq1: { value: 0.5 },
+  freq2: { value: 0.8 },
+  speed1: { value: 0.25 },
+  speed2: { value: 0.20 },
+  amp3: { value: 0.2 },
+  amp4: { value: 0.15 },
+  freq3: { value: 0.8 },
+  freq4: { value: 0.5 },
+  speed3: { value: 0.2 },
+  speed4: { value: -0.2 },
+  steep: { value: 1.0 },
+  smallIterations: { value: 4.0 },
 
-  color1: { value: RgbToVec3(255, 0, 0) },
-  color2: { value: RgbToVec3(0, 255, 0) },
+  // uTime: { value: 0.0 },
+  // uBigWavesElevation: { value: 0.16 },
+  // uBigWavesFrequency: { value: new THREE.Vector2(4, 4) },
+  // uBigWavesSpeed: { value: 3 },
+  // uSmallWavesElevation: { value: 0.15},
+  // uSmallWavesFrequency: { value: 3 },
+  // uSmallWavesSpeed: { value: 0.14 },
+  // uSmallIterations: { value: 5 },
 
-  // color1: { value: RgbToVec3(0, 0, 0) },
-  // color2: { value: RgbToVec3(53, 53, 74) },
+  // color1: { value: RgbToVec3(255, 0, 0) },
+  // color2: { value: RgbToVec3(0, 255, 0) },
+
+  color1: { value: RgbToVec3(4, 6, 6) },
+  color2: { value: RgbToVec3(45, 52, 57) },
 
   fogColor: { value: new THREE.Color(tintcolor) },
   fogDensity: { value: 0.08 },
@@ -81,7 +97,7 @@ light.position.set(-5, 0, 5);
 scene.add(light);
 
 // Fog
-//scene.fog = new THREE.FogExp2(tintcolor, 0.15);
+scene.fog = new THREE.FogExp2(tintcolor, 0.10);
 
 // Camera
 const camera = new THREE.PerspectiveCamera(
@@ -90,7 +106,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.set(0, -3, 0.25);
+camera.position.set(0, -8, 1);
 camera.lookAt(0, 0, 0);
 scene.add(camera);
 
@@ -104,9 +120,9 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setClearColor(0x020617);
 
 // Controls
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 0, 0);
-controls.enableDamping = true;
+// const controls = new OrbitControls(camera, renderer.domElement);
+// controls.target.set(0, 0, 0);
+// controls.enableDamping = true;
 
 // Handle resize
 window.addEventListener("resize", () => {
@@ -120,7 +136,7 @@ window.addEventListener("resize", () => {
 const clock = new THREE.Clock();
 
 function tick() {
-  uniforms.uTime.value = clock.getElapsedTime();
+  uniforms.time.value = clock.getElapsedTime();
 
   //controls.update();
   renderer.render(scene, camera);
