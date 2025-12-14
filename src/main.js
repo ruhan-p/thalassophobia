@@ -1,6 +1,11 @@
 import * as THREE from "three";
 
-// import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+// Post-Processing Imports
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
+import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass.js";
+import { VignetteShader } from "three/examples/jsm/shaders/VignetteShader.js";
 
 import watervertex from "./shaders/watervertex.glsl";
 import waterfragment from "./shaders/waterfragment.glsl";
@@ -18,7 +23,7 @@ function RgbToVec3(r, g, b) {
 
 const tintcolor = 0x373F45;
 scene.background = new THREE.Color(tintcolor);
-scene.fog = new THREE.FogExp2(tintcolor, 0.10);
+scene.fog = new THREE.FogExp2(tintcolor, 0.08);
 
 // Camera
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
@@ -35,7 +40,6 @@ const getWaveInfo = (x, y, t) => {
     const phi   = y * freq.value + t * speed.value * sign;
 
     const val = Math.sin(theta) * Math.sin(phi) * amp.value;
-    // calculus!
     const ddx = amp.value * freq.value * Math.cos(theta) * Math.sin(phi);
     const ddy = amp.value * freq.value * Math.sin(theta) * Math.cos(phi);
 
@@ -49,9 +53,9 @@ const getWaveInfo = (x, y, t) => {
 };
 
 // Renderer
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(1);
 renderer.setClearColor(0x020617);
 
 // Uniforms
@@ -71,10 +75,8 @@ const customUniforms = {
   speed4: { value: 0.4 },
   steep: { value: 1.0 },
   smallIterations: { value: 4.0 },
-
   opacityNear: { value: 0.0 },
   opacityFar: { value: 3.0 },
-
   color1: { value: RgbToVec3(3, 6, 10) },
   color2: { value: RgbToVec3(20, 25, 30) },
   fogColor: { value: new THREE.Color(tintcolor) },
@@ -112,7 +114,7 @@ light.position.set(-15, 25, 4);
 scene.add(light);
 
 // Rain
-const rainCount = 20000;
+const rainCount = 2500;
 
 let drops = [];
 for (let i = 0; i < rainCount; i ++) {
@@ -127,19 +129,37 @@ const rainvel = raingeo.attributes.velocity;
 const rainpos = raingeo.attributes.position;
 
 const rainmat = new THREE.LineBasicMaterial({
-  color: 0x5a6066,
+  color: 0x8899aa,
   transparent: true,
+  opacity: 0.6,
   linewidth: 1
 });
 
-// Use pairs of vertices as independent segments
 const rain = new THREE.LineSegments(raingeo, rainmat);
 scene.add(rain);
 
-// Lightning
-// const lightning = new THREE.PointLight(0x0000ff, 10, 0);
-// lightning.position.set(-25,25,15);
-// scene.add(lightning);
+// Post
+const composer = new EffectComposer(renderer);
+
+const renderPass = new RenderPass(scene, camera);
+composer.addPass(renderPass);
+
+const bokehPass = new BokehPass(scene, camera, {
+  focus: 20.0,
+  aperture: 0.0005,
+  maxblur: 0.02,
+  width: window.innerWidth,
+  height: window.innerHeight
+});
+bokehPass.materialBokeh.defines['RINGS'] = 3;
+bokehPass.materialBokeh.defines['SAMPLES'] = 2;
+bokehPass.materialBokeh.needsUpdate = true;
+composer.addPass(bokehPass);
+
+const vignettePass = new ShaderPass(VignetteShader);
+vignettePass.uniforms["offset"].value = 0.6;
+vignettePass.uniforms["darkness"].value = 1.4;
+composer.addPass(vignettePass);
 
 // Resize
 window.addEventListener("resize", () => {
@@ -150,13 +170,8 @@ window.addEventListener("resize", () => {
   camera.updateProjectionMatrix();
 
   renderer.setSize(width, height);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  composer.setSize(width, height);
 });
-
-// Controls
-// const controls = new OrbitControls(camera, renderer.domElement);
-// controls.target.set(0, 0, 0);
-// controls.enableDamping = true;
 
 // Animation loop
 const wp = new THREE.Vector3();
@@ -165,13 +180,13 @@ const wNormal = new THREE.Vector3();
 const smooth = new THREE.Vector3(0, 0, 1); 
 const clock = new THREE.Clock();
 
-const offset = Math.random() * 1000
+const offset = Math.random() * 1000;
 
 function tick() {
   const t = clock.getElapsedTime() + offset;
   uniforms.time.value = t;
 
-  const wx = 1 * Math.cos(t*0.05 + 56.78);
+  const wx = 2 * Math.cos(t*0.05 + 56.78);
   const wy = 0.1 * Math.sin(t*0.02 + 134.57);
 
   // Camera loop
@@ -180,8 +195,10 @@ function tick() {
 
   const { h, dx, dy } = getWaveInfo(wp.x, wp.y, t);
 
-  const targetZ = h; 
+  const targetZ = h;
   camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.1);
+
+  bokehPass.uniforms['focus'].value = 10.0;
 
   lNormal.set(-dx, -dy, 1).normalize();
   wNormal.copy(lNormal).transformDirection(watersurf.matrixWorld);
@@ -196,7 +213,7 @@ function tick() {
     const x = rainpos.getX(i); const y = rainpos.getY(i); const z = rainpos.getZ(i);
     const tx = rainpos.getX(i + 1); const ty = rainpos.getY(i + 1); const tz = rainpos.getZ(i + 1);
 
-    const fallSpeed = 0.1; 
+    const fallSpeed = 0.4;
 
     if (z < -1) {
       const vx = (wx + 0.05 * (Math.random() - 0.5)) * 0.05;
@@ -207,7 +224,7 @@ function tick() {
       const newZ = Math.random() * 10 + 5;
 
       rainpos.setXYZ(i, px, py, newZ);
-      rainpos.setXYZ(i + 1, px + vx, py + vy, newZ - 0.05);
+      rainpos.setXYZ(i + 1, px + vx, py + vy, newZ - 0.2 - (Math.random() * 0.05));
 
       rainvel.setXYZ(i, vx, vy, 0);     
       rainvel.setXYZ(i + 1, vx, vy, 0); 
@@ -225,8 +242,7 @@ function tick() {
   rainvel.needsUpdate = true;
   rainpos.needsUpdate = true;
 
-  // controls.update();
-  renderer.render(scene, camera);
+  composer.render();
   requestAnimationFrame(tick);
 }
 
