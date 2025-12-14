@@ -1,5 +1,7 @@
 import * as THREE from "three";
 
+// import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+
 import watervertex from "./shaders/watervertex.glsl";
 import waterfragment from "./shaders/waterfragment.glsl";
 
@@ -70,8 +72,8 @@ const customUniforms = {
   steep: { value: 1.0 },
   smallIterations: { value: 4.0 },
 
-  opacityNear: { value: 7.0 },
-  opacityFar: { value: 9.0 },
+  opacityNear: { value: 0.0 },
+  opacityFar: { value: 3.0 },
 
   color1: { value: RgbToVec3(3, 6, 10) },
   color2: { value: RgbToVec3(20, 25, 30) },
@@ -109,10 +111,35 @@ const light = new THREE.PointLight(0xcacaca, 2, 0);
 light.position.set(-15, 25, 4);
 scene.add(light);
 
+// Rain
+const rainCount = 20000;
+
+let drops = [];
+for (let i = 0; i < rainCount; i ++) {
+  let drop = new THREE.Vector3(0,0,0);
+  drops.push(drop);
+}
+const raingeo = new THREE.BufferGeometry().setFromPoints(drops);
+
+const velocities = new Float32Array(rainCount * 3);
+raingeo.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
+const rainvel = raingeo.attributes.velocity;
+const rainpos = raingeo.attributes.position;
+
+const rainmat = new THREE.LineBasicMaterial({
+  color: 0x5a6066,
+  transparent: true,
+  linewidth: 1
+});
+
+// Use pairs of vertices as independent segments
+const rain = new THREE.LineSegments(raingeo, rainmat);
+scene.add(rain);
+
 // Lightning
-const lightning = new THREE.PointLight(0x0000ff, 10, 0);
-lightning.position.set(-25,25,15);
-scene.add(lightning);
+// const lightning = new THREE.PointLight(0x0000ff, 10, 0);
+// lightning.position.set(-25,25,15);
+// scene.add(lightning);
 
 // Resize
 window.addEventListener("resize", () => {
@@ -126,6 +153,11 @@ window.addEventListener("resize", () => {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 });
 
+// Controls
+// const controls = new OrbitControls(camera, renderer.domElement);
+// controls.target.set(0, 0, 0);
+// controls.enableDamping = true;
+
 // Animation loop
 const wp = new THREE.Vector3();
 const lNormal = new THREE.Vector3();
@@ -133,10 +165,16 @@ const wNormal = new THREE.Vector3();
 const smooth = new THREE.Vector3(0, 0, 1); 
 const clock = new THREE.Clock();
 
+const offset = Math.random() * 1000
+
 function tick() {
-  const t = clock.getElapsedTime();
+  const t = clock.getElapsedTime() + offset;
   uniforms.time.value = t;
 
+  const wx = 1 * Math.cos(t*0.05 + 56.78);
+  const wy = 0.1 * Math.sin(t*0.02 + 134.57);
+
+  // Camera loop
   wp.copy(camera.position);
   watersurf.worldToLocal(wp);
 
@@ -150,9 +188,44 @@ function tick() {
 
   smooth.lerp(wNormal, 0.05);
   camera.up.copy(smooth);
-
   camera.lookAt(0, 0, 0);
-  
+
+  // Rain loop
+  for (let i = 0; i < rainpos.count; i += 2) {
+    
+    const x = rainpos.getX(i); const y = rainpos.getY(i); const z = rainpos.getZ(i);
+    const tx = rainpos.getX(i + 1); const ty = rainpos.getY(i + 1); const tz = rainpos.getZ(i + 1);
+
+    const fallSpeed = 0.1; 
+
+    if (z < -1) {
+      const vx = (wx + 0.05 * (Math.random() - 0.5)) * 0.05;
+      const vy = (wy + 0.05 * (Math.random() - 0.5)) * 0.05;
+
+      const px = (Math.random() - 0.5) * 15.0 + 1.0;
+      const py = (Math.random() - 0.5) * 15.0 - 6.0;
+      const newZ = Math.random() * 10 + 5;
+
+      rainpos.setXYZ(i, px, py, newZ);
+      rainpos.setXYZ(i + 1, px + vx, py + vy, newZ - 0.05);
+
+      rainvel.setXYZ(i, vx, vy, 0);     
+      rainvel.setXYZ(i + 1, vx, vy, 0); 
+      
+      continue;
+    }
+
+    const vx = rainvel.getX(i);
+    const vy = rainvel.getY(i);
+
+    rainpos.setXYZ(i, x + vx, y + vy, z - fallSpeed);
+    rainpos.setXYZ(i + 1, tx + vx, ty + vy, tz - fallSpeed);
+  }
+
+  rainvel.needsUpdate = true;
+  rainpos.needsUpdate = true;
+
+  // controls.update();
   renderer.render(scene, camera);
   requestAnimationFrame(tick);
 }

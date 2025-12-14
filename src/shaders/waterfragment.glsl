@@ -81,7 +81,7 @@ export default `
     // Alpha
     float dist = length(vWorldPos - cameraPosition);
     float distMix = smoothstep(opacityNear, opacityFar, dist);
-    float alpha = mix(0.95, 1.0, distMix);
+    float alpha = mix(0.9, 1.0, distMix);
 
 
     // Mixing
