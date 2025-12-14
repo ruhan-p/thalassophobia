@@ -3,14 +3,18 @@ export default `
   uniform vec3 color1;
   uniform vec3 color2;
   uniform float time;
-  uniform float opacity;
+  uniform float opacityNear;
+  uniform float opacityFar;
+
   varying float vHeight;
   varying vec3  vWorldPos;
   varying vec3  vNormal;
   varying float vSlope;
+
   #include <common>
   #include <fog_pars_fragment>
   #include <lights_pars_begin>
+  #include <packing>
 
   float hash(vec2 p) {
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
@@ -28,21 +32,12 @@ export default `
   }
 
   void main() {
-    float h = clamp(vHeight + 1.0, 0.0, 1.0);
-    vec3 color = mix(color1, color2, h);
 
+    // Color
     vec3 normal = normalize(vNormal);
     vec3 lighting = ambientLightColor;
 
-    #if NUM_DIR_LIGHTS > 0
-    for (int i = 0; i < NUM_DIR_LIGHTS; i++) {
-      vec3 dir = directionalLights[i].direction;
-      vec3 lcolor = directionalLights[i].color;
-      float diffuseFactor = max(dot(normal, dir), 0.0);
-      lighting += lcolor * diffuseFactor;
-    }
-    #endif
-
+    // Lighting
     #if NUM_POINT_LIGHTS > 0
     for (int i = 0; i < NUM_POINT_LIGHTS; i++) {
       vec3 lightDir = pointLights[i].position - vWorldPos;
@@ -59,37 +54,41 @@ export default `
     }
     #endif
 
-    vec3 finalColor = color * lighting;
-    // Screen-space slope change helps catch interfering waves, while raw slope
-    // captures big crests. Both feed the foam mask.
-    float slopeFoam = smoothstep(0.05, 0.15, vSlope);
+    float h = clamp(vHeight + 0.75, 0.0, 1.0);
+    vec3 color = mix(color1, color2, h);
 
-    // Make collision foam cover more area and contribute more.
+    vec3 finalColor = color * lighting;
+
+    // Foam
     float collisionRaw = fwidth(vSlope) * 4.0;
-    float collisionFoam = smoothstep(0.0, 0.08, collisionRaw); // lower start, higher end
-    collisionFoam = pow(collisionFoam, 0.6); // flatter curve = thicker bands
+    float collisionFoam = smoothstep(0.0, 0.08, collisionRaw);
+    collisionFoam = pow(collisionFoam, 0.6);
 
     float collisionComponent = collisionFoam * 1.25;
-    // High-frequency breakup so not every collision produces foam.
-    vec2 foamUV_base = vWorldPos.xy * 3.0 + vec2(time * 0.08, time * 0.06);
+    
+    vec2 foamUV_base = vWorldPos.xy * 1.0 + vec2(time * 0.08, time * 0.06);
     float base = valueNoise(foamUV_base);
 
-    // Detail noise shapes the patch edges (controls patch size/granularity)
     vec2 foamUV_detail = vWorldPos.xy * 4.0 + vec2(time * 0.2, time * 0.16);
     float detail = valueNoise(foamUV_detail);
 
-    // Gate by base, then erode with detail
     float foamMask = smoothstep(0.55, 0.7, base) * smoothstep(0.4, 0.8, detail);
     collisionComponent *= foamMask;
 
-    float foam = clamp(slopeFoam + collisionComponent, 0.0, 1.0);
-    foam = smoothstep(0.08, 0.75, foam); // relax final squeeze
+    float foam = clamp(collisionComponent, 0.0, 1.0);
+    foam = smoothstep(0.08, 0.75, foam);
+
+    // Alpha
+    float dist = length(vWorldPos - cameraPosition);
+    float distMix = smoothstep(opacityNear, opacityFar, dist);
+    float alpha = mix(0.95, 1.0, distMix);
 
 
-    vec3 foamed = mix(finalColor, vec3(1.0), foam);
-    // Keep foam opaque while letting the base water stay translucent.
-    float alpha = mix(opacity, 1.0, foam);
-    gl_FragColor = vec4(foamed, alpha);
+    // Mixing
+    vec3 foamed = mix(finalColor, vec3(0.5,0.55,0.60), foam);
+
+    gl_FragColor = vec4(foamed, clamp(alpha, 0.0, 1.0));
+    
     #include <fog_fragment>
   }
 `;

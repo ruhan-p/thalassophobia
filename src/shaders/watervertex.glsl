@@ -1,7 +1,6 @@
 export default `
   uniform float time;
 
-  // Big swells (mapped from your existing uniforms)
   uniform float amp1;
   uniform float amp2;
   uniform float freq1;
@@ -9,7 +8,6 @@ export default `
   uniform float speed1;
   uniform float speed2;
 
-  // Small choppy details (mapped from your existing uniforms)
   uniform float amp3;
   uniform float amp4;
   uniform float freq3;
@@ -17,10 +15,8 @@ export default `
   uniform float speed3;
   uniform float speed4;
 
-  // Used here as an extra "chop intensity" multiplier
   uniform float steep;
 
-  // NEW: number of small-wave noise iterations (1..10)
   uniform float smallIterations;
 
   varying vec2 vPos;
@@ -31,9 +27,7 @@ export default `
 
   #include <fog_pars_vertex>
 
-  // ---------------------------------------------
-  // Classic Perlin 3D Noise (Stefan Gustavson)
-  // ---------------------------------------------
+  // 3D Perlin Noise
   vec4 permute(vec4 x) {
       return mod(((x * 34.0) + 1.0) * x, 289.0);
   }
@@ -127,10 +121,6 @@ export default `
       return 2.2 * n_xyz;
   }
 
-  // ---------------------------------------------
-  // Big swells
-  // "Raging sea" big-wave core, but using your 1 & 2 sets
-  // ---------------------------------------------
   float getBigWave(vec2 p) {
       float w1 =
           sin(p.x * freq1 + time * speed1) *
@@ -145,10 +135,6 @@ export default `
       return w1 + w2;
   }
 
-  // ---------------------------------------------
-  // Small choppy details
-  // Multi-iteration Perlin chop using your 3 & 4 sets
-  // ---------------------------------------------
   float getSmallWave(vec2 p) {
       float small = 0.0;
       float iters = clamp(smallIterations, 1.0, 10.0);
@@ -170,7 +156,6 @@ export default `
           small -= abs(n4) * (amp4 / i);
       }
 
-      // "steep" here acts as extra storm-chop intensity
       float s = clamp(steep, 0.0, 3.0);
       small *= mix(1.0, 1.35, clamp(s / 2.5, 0.0, 1.0));
 
@@ -187,9 +172,6 @@ export default `
       float height = getHeight(pos.xy);
       pos.z += height;
 
-      // Normal from finite differences on combined height.
-      // Use forward differences to cut expensive height evaluations
-      // (important when smallIterations is high).
       float delta = 0.05;
       float hX = getHeight(pos.xy + vec2(delta, 0.0)) - height;
       float hY = getHeight(pos.xy + vec2(0.0, delta)) - height;
@@ -198,7 +180,6 @@ export default `
       vec3 bitangent = normalize(vec3(0.0, delta, hY));
       vec3 displacedNormal = normalize(cross(tangent, bitangent));
 
-      // Store slope magnitude for foam/crest detection in fragment shader.
       vSlope = length(vec2(hX, hY));
       vHeight = height;
       vPos = position.xy;
@@ -211,83 +192,3 @@ export default `
       #include <fog_vertex>
   }
 `;
-// export default `
-//   uniform float time;
-//   uniform float amp1;
-//   uniform float amp2;
-//   uniform float amp3;
-//   uniform float freq1;
-//   uniform float freq2;
-//   uniform float freq3;
-//   uniform float speed1;
-//   uniform float speed2;
-//   uniform float speed3;
-
-//   varying vec2 vPos;
-//   varying vec3 vWorldPos;
-//   varying float vHeight;
-//   varying vec3 vNormal;
-//   #include <fog_pars_vertex>
-
-//   float rand(vec2 st) {
-//     return fract(sin(dot(st, vec2(27.619, 57.583))) * 43758.5453123);
-//   }
-
-//   float valueNoise(vec2 st) {
-//     vec2 i = floor(st);
-//     vec2 f = fract(st);
-
-//     float a = rand(i);
-//     float b = rand(i + vec2(1.0, 0.0));
-//     float c = rand(i + vec2(0.0, 1.0));
-//     float d = rand(i + vec2(1.0, 1.0));
-
-//     vec2 u = smoothstep(0.0, 1.0, f);
-
-//     float x1 = mix(a, b, u.x);
-//     float x2 = mix(c, d, u.x);
-//     return mix(x1, x2, u.y);
-//   }
-
-//   float getHeight(vec2 pos) {
-//     vec2 st1 = vec2(pos.x * freq1 + time * speed1,
-//                     pos.y * freq1 + time * speed1);
-//     vec2 st2 = vec2(pos.x * freq2 - time * speed2,
-//                     pos.y * freq2 - time * speed2);
-//     vec2 st3 = vec2(pos.x * freq3 - time * speed3,
-//                     pos.y * freq3 - time * speed3);
-
-//     float n1 = valueNoise(st1) - 1.0;
-//     float n2 = valueNoise(st2) - 1.0;
-//     float n3 = valueNoise(st3) - 1.0;
-
-//     float height = n1 * amp1 + n2 * amp2 + n3 * amp3;
-//     return height;
-//   }
-
-//   void main() {
-//     vec3 pos = position;
-
-//     float height = getHeight(pos.xy);
-//     pos.z += height;
-
-//     float delta = 0.05;
-//     float heightX1 = getHeight(pos.xy + vec2(delta, 0.0));
-//     float heightX2 = getHeight(pos.xy - vec2(delta, 0.0));
-//     float heightY1 = getHeight(pos.xy + vec2(0.0, delta));
-//     float heightY2 = getHeight(pos.xy - vec2(0.0, delta));
-
-//     vec3 tangent = normalize(vec3(2.0 * delta, 0.0, heightX1 - heightX2));
-//     vec3 bitangent = normalize(vec3(0.0, 2.0 * delta, heightY1 - heightY2));
-//     vec3 displacedNormal = normalize(cross(tangent, bitangent));
-
-//     vHeight = height;
-//     vPos = position.xy;
-//     vWorldPos = (modelMatrix * vec4(pos, 1.0)).xyz;
-//     vNormal = normalize(normalMatrix * displacedNormal);
-
-//     vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-//     gl_Position = projectionMatrix * mvPosition;
-//     #include <fog_vertex>
-//   }
-// `;
