@@ -5,7 +5,9 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { VignetteShader } from "three/examples/jsm/shaders/VignetteShader.js";
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 import watervertex from "./shaders/watervertex.glsl";
 import waterfragment from "./shaders/waterfragment.glsl";
@@ -39,6 +41,7 @@ const getWaveInfo = (x, y, t) => {
     const theta = x * freq.value + t * speed.value * sign;
     const phi   = y * freq.value + t * speed.value * sign;
 
+    // calculus!
     const val = Math.sin(theta) * Math.sin(phi) * amp.value;
     const ddx = amp.value * freq.value * Math.cos(theta) * Math.sin(phi);
     const ddy = amp.value * freq.value * Math.sin(theta) * Math.cos(phi);
@@ -113,6 +116,18 @@ const light = new THREE.PointLight(0xcacaca, 2, 0);
 light.position.set(-15, 25, 4);
 scene.add(light);
 
+// Buoy
+// const loader = new GLTFLoader();
+// loader.load( 'path/to/model.glb', function ( gltf ) {
+//   scene.add( gltf.scene );
+
+// }, undefined, function ( error ) {
+//   console.error( error );
+// } );
+
+// Lightning
+
+
 // Rain
 const rainCount = 2500;
 
@@ -155,6 +170,19 @@ bokehPass.materialBokeh.defines['RINGS'] = 3;
 bokehPass.materialBokeh.defines['SAMPLES'] = 2;
 bokehPass.materialBokeh.needsUpdate = true;
 composer.addPass(bokehPass);
+
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  1.5,
+  0.4,
+  0.85
+);
+bloomPass.clearColor = new THREE.Color(0xffffff);
+
+bloomPass.threshold = 0.5;
+bloomPass.strength = 0.6;
+bloomPass.radius = 1.0;
+composer.addPass(bloomPass);
 
 const vignettePass = new ShaderPass(VignetteShader);
 vignettePass.uniforms["offset"].value = 0.6;
