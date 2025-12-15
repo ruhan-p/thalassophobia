@@ -56,7 +56,7 @@ const getWaveInfo = (x, y, t) => {
 };
 
 // Renderer
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(1);
 renderer.setClearColor(0x020617);
@@ -112,17 +112,54 @@ seafloor.position.set(0, 0, -1.5); seafloor.rotation.z = -Math.PI / 8;
 scene.add(seafloor);
 
 // Light
+// const light = new THREE.AmbientLight(0xffffff, 5);
 const light = new THREE.PointLight(0xcacaca, 2, 0);
 light.position.set(-15, 25, 4);
 scene.add(light);
 
 // Buoy
+const buoyLightColor = 0xff8f80;
+const buoyGroup = new THREE.Group();
+buoyGroup.position.set(0.8, -8, 0);
+scene.add(buoyGroup);
+
+const buoyLight = new THREE.PointLight(buoyLightColor, 0.1, 30);
+buoyLight.position.set(0, 0, 0.5);
+buoyGroup.add(buoyLight);
+
+const buoyLightObj = new THREE.Mesh(new THREE.SphereGeometry(0.02, 32), new THREE.MeshStandardMaterial({
+  emissive: buoyLightColor,
+  metalness: 0,
+  roughness: 1
+}));
+buoyLightObj.position.set(0, 0, 0.39);
+buoyGroup.add(buoyLightObj);
+
 const loader = new OBJLoader();
 loader.load( '../assets/buoy.obj', function ( obj ) {
-  obj.position.set(0.8, -8, 0);
   obj.rotation.set(Math.PI/2, 0, 0);
   obj.scale.set(0.03, 0.03, 0.03);
-  scene.add( obj );
+
+  const texLoader = new THREE.TextureLoader();
+  const colortex = texLoader.load("../assets/buoy_basecolor.png");
+  const roughnesstex = texLoader.load("../assets/buoy_roughness.png");
+
+  colortex.colorSpace = THREE.SRGBColorSpace;
+  roughnesstex.colorSpace = THREE.NoColorSpace;
+
+  obj.traverse((child) => {
+    if (child.isMesh) {
+      child.material = new THREE.MeshStandardMaterial({
+        map: colortex,
+        roughnessMap: roughnesstex,
+        metalness: 0.5
+      });
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+
+  buoyGroup.add(obj);
 
 }, undefined, function ( error ) {
   console.error( error );
@@ -176,9 +213,9 @@ composer.addPass(bokehPass);
 
 const bloomPass = new UnrealBloomPass(
   new THREE.Vector2(window.innerWidth, window.innerHeight),
-  1.5,
+  1.0,
   0.4,
-  0.85
+  0.8
 );
 bloomPass.clearColor = new THREE.Color(0xffffff);
 
@@ -205,12 +242,14 @@ window.addEventListener("resize", () => {
 });
 
 // Animation loop
-const wp = new THREE.Vector3();
-const lNormal = new THREE.Vector3();
-const wNormal = new THREE.Vector3();
-const smooth = new THREE.Vector3(0, 0, 1);
-const clock = new THREE.Clock();
+const cwp = new THREE.Vector3(); cwp.copy(camera.position); watersurf.worldToLocal(cwp);
+const bwp = new THREE.Vector3(); bwp.copy(buoyGroup.position); watersurf.worldToLocal(bwp);
+const csmooth = new THREE.Vector3(0, 0, 1);
+const _norm = new THREE.Vector3();
+const _quat = new THREE.Quaternion();
+const _up = new THREE.Vector3(0, 0, 1);
 
+const clock = new THREE.Clock();
 const offset = Math.random() * 1000;
 
 function tick() {
@@ -221,22 +260,28 @@ function tick() {
   const wy = 0.1 * Math.sin(t*0.02 + 134.57);
 
   // Camera loop
-  wp.copy(camera.position);
-  watersurf.worldToLocal(wp);
+  const { h, dx, dy } = getWaveInfo(cwp.x, cwp.y, t);
+  camera.position.z = THREE.MathUtils.lerp(camera.position.z, h, 0.1);
 
-  const { h, dx, dy } = getWaveInfo(wp.x, wp.y, t);
+  _norm.set(-dx, -dy, 1).normalize();
+  _norm.transformDirection(watersurf.matrixWorld);
 
-  const targetZ = h;
-  camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.1);
-  
-  bokehPass.uniforms['focus'].value = 10.0;
-
-  lNormal.set(-dx, -dy, 1).normalize();
-  wNormal.copy(lNormal).transformDirection(watersurf.matrixWorld);
-
-  smooth.lerp(wNormal, 0.05);
-  camera.up.copy(smooth);
+  csmooth.lerp(_norm, 0.05);
+  camera.up.copy(csmooth);
   camera.lookAt(0, 0, 0);
+
+  bokehPass.uniforms['focus'].value = 8.0 + 2 * Math.sin(0.1*t);
+
+  // Buoy loop
+  const { h: bh, dx: bdx, dy: bdy } = getWaveInfo(bwp.x, bwp.y, t);
+  buoyGroup.position.z = THREE.MathUtils.lerp(buoyGroup.position.z, bh - 0.2, 0.05);
+  _norm.set(-bdx + 0.2*Math.sin(t), -bdy, 1).normalize();
+  _norm.transformDirection(watersurf.matrixWorld);
+  _quat.setFromUnitVectors(_up, _norm);
+  buoyGroup.quaternion.slerp(_quat, 0.1);
+
+  buoyLight.intensity = 0.15 + 0.15*Math.sin(2*t);
+  buoyLightObj.material.emissiveIntensity = 1.5 + 1.5*Math.sin(2*t);
   
   // Rain loop
   for (let i = 0; i < rainpos.count; i += 2) {
