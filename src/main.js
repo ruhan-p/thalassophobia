@@ -11,7 +11,7 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 import watervertex from "./shaders/watervertex.glsl";
 import waterfragment from "./shaders/waterfragment.glsl";
-import { mx_bilerp_0 } from "three/src/nodes/materialx/lib/mx_noise.js";
+import { clamp } from "three/src/math/MathUtils.js";
 
 const canvas = document.querySelector("#webgl");
 const scene = new THREE.Scene();
@@ -82,7 +82,7 @@ const customUniforms = {
   opacityNear: { value: 0.0 },
   opacityFar: { value: 3.0 },
   color1: { value: RgbToVec3(2, 4, 6) },
-  color2: { value: RgbToVec3(20, 24, 28) },
+  color2: { value: RgbToVec3(20, 26, 32) },
   fogColor: { value: new THREE.Color(tintcolor) },
   fogDensity: { value: 0.08 },
 };
@@ -135,9 +135,9 @@ const buoyLightObj = new THREE.Mesh(new THREE.SphereGeometry(0.02, 32), new THRE
 buoyLightObj.position.set(0, 0, 0.39);
 buoyGroup.add(buoyLightObj);
 
-const buoyAmbLight = new THREE.PointLight(0xffffff, 0.4, 30);
-buoyAmbLight.position.set(-1, 0, 0.5);
-buoyGroup.add(buoyAmbLight);
+const buoyLight2 = new THREE.PointLight(0xffffff, 0.4, 30);
+buoyLight2.position.set(-1, 0, 0.5);
+buoyGroup.add(buoyLight2);
 
 const loader = new OBJLoader();
 loader.load( '../assets/buoy.obj', function ( obj ) {
@@ -170,7 +170,14 @@ loader.load( '../assets/buoy.obj', function ( obj ) {
 } );
 
 // Lightning
-
+const lightning = {
+  active: false,
+  intensity: 0,
+  next: 3.0,
+  duration: 0.0,
+  baseColor: new THREE.Color(tintcolor),
+  flashColor: new THREE.Color(0xb4c1d1),
+};
 
 // Rain
 const rainCount = 2500;
@@ -252,12 +259,15 @@ const csmooth = new THREE.Vector3(0, 0, 1);
 const _norm = new THREE.Vector3();
 const _quat = new THREE.Quaternion();
 const _up = new THREE.Vector3(0, 0, 1);
+const _colorScratch = new THREE.Color();
 
 const clock = new THREE.Clock();
 const offset = Math.random() * 1000;
 
 function tick() {
+  const dt = clock.getDelta();
   const t = clock.getElapsedTime() + offset;
+  
   uniforms.time.value = t;
 
   const wx = 2 * Math.cos(t*0.05 + 56.78);
@@ -321,6 +331,36 @@ function tick() {
 
   // Fog
   scene.fog.density = 0.12 + 0.04 * Math.sin(0.05 * t);
+
+  // Lightning
+  lightning.next -= dt;
+
+  if (lightning.next <= 0) {
+    lightning.active = true;
+    lightning.next = Math.random() * 6.0 + 2.0;
+    lightning.duration = Math.random() * 1.5;
+  }
+
+  if (lightning.active) {
+    lightning.duration -= dt;
+    if (lightning.duration <= 0) {
+      lightning.active = false;
+    } else {
+      lightning.intensity = clamp( lightning.intensity + (0.03 - Math.random() * 0.06), 0, 0.1 ); // Flicker
+    }
+  }
+
+  if (!lightning.active) {
+    lightning.intensity = THREE.MathUtils.lerp(lightning.intensity, 0, 1 - Math.exp(-5 * dt));
+  }
+
+  light.intensity = 1.0 + lightning.intensity * 10.0;
+
+  _colorScratch.lerpColors(lightning.baseColor, lightning.flashColor, lightning.intensity);
+  
+  scene.fog.color.copy(_colorScratch);
+  scene.background.copy(_colorScratch);
+
 
   rainvel.needsUpdate = true;
   rainpos.needsUpdate = true;
