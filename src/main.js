@@ -25,6 +25,9 @@ function RgbToVec3(r, g, b) {
 }
 
 const tintcolor = 0x373F45;
+const watercolor = [20, 26, 32];
+const flashcolor = 0xb4c1d1;
+
 scene.background = new THREE.Color(tintcolor);
 scene.fog = new THREE.FogExp2(tintcolor, 0.08);
 
@@ -82,7 +85,7 @@ const customUniforms = {
   opacityNear: { value: 0.0 },
   opacityFar: { value: 3.0 },
   color1: { value: RgbToVec3(2, 4, 6) },
-  color2: { value: RgbToVec3(20, 26, 32) },
+  color2: { value: RgbToVec3(...watercolor) },
   fogColor: { value: new THREE.Color(tintcolor) },
   fogDensity: { value: 0.08 },
 };
@@ -176,7 +179,7 @@ const lightning = {
   next: 3.0,
   duration: 0.0,
   baseColor: new THREE.Color(tintcolor),
-  flashColor: new THREE.Color(0xb4c1d1),
+  flashColor: new THREE.Color(flashcolor),
 };
 
 // Rain
