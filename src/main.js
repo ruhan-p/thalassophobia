@@ -7,7 +7,7 @@ import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { VignetteShader } from "three/examples/jsm/shaders/VignetteShader.js";
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 import watervertex from "./shaders/watervertex.glsl";
 import waterfragment from "./shaders/waterfragment.glsl";
@@ -117,13 +117,16 @@ light.position.set(-15, 25, 4);
 scene.add(light);
 
 // Buoy
-// const loader = new GLTFLoader();
-// loader.load( 'path/to/model.glb', function ( gltf ) {
-//   scene.add( gltf.scene );
+const loader = new OBJLoader();
+loader.load( '../assets/buoy.obj', function ( obj ) {
+  obj.position.set(0.8, -8, 0);
+  obj.rotation.set(Math.PI/2, 0, 0);
+  obj.scale.set(0.03, 0.03, 0.03);
+  scene.add( obj );
 
-// }, undefined, function ( error ) {
-//   console.error( error );
-// } );
+}, undefined, function ( error ) {
+  console.error( error );
+} );
 
 // Lightning
 
@@ -205,7 +208,7 @@ window.addEventListener("resize", () => {
 const wp = new THREE.Vector3();
 const lNormal = new THREE.Vector3();
 const wNormal = new THREE.Vector3();
-const smooth = new THREE.Vector3(0, 0, 1); 
+const smooth = new THREE.Vector3(0, 0, 1);
 const clock = new THREE.Clock();
 
 const offset = Math.random() * 1000;
@@ -225,7 +228,7 @@ function tick() {
 
   const targetZ = h;
   camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.1);
-
+  
   bokehPass.uniforms['focus'].value = 10.0;
 
   lNormal.set(-dx, -dy, 1).normalize();
@@ -234,7 +237,7 @@ function tick() {
   smooth.lerp(wNormal, 0.05);
   camera.up.copy(smooth);
   camera.lookAt(0, 0, 0);
-
+  
   // Rain loop
   for (let i = 0; i < rainpos.count; i += 2) {
     
