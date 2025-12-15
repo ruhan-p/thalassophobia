@@ -11,7 +11,6 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 import watervertex from "./shaders/watervertex.glsl";
 import waterfragment from "./shaders/waterfragment.glsl";
-import { clamp } from "three/src/math/MathUtils.js";
 
 const canvas = document.querySelector("#webgl");
 const scene = new THREE.Scene();
@@ -159,7 +158,7 @@ loader.load( '../assets/buoy.obj', function ( obj ) {
       child.material = new THREE.MeshStandardMaterial({
         map: colortex,
         roughnessMap: roughnesstex,
-        metalness: 0.5
+        metalness: 0.1
       });
       child.castShadow = true;
       child.receiveShadow = true;
@@ -258,6 +257,7 @@ window.addEventListener("resize", () => {
 // Animation loop
 const cwp = new THREE.Vector3(); cwp.copy(camera.position); watersurf.worldToLocal(cwp);
 const bwp = new THREE.Vector3(); bwp.copy(buoyGroup.position); watersurf.worldToLocal(bwp);
+const buoySpinQuat = new THREE.Quaternion();
 const csmooth = new THREE.Vector3(0, 0, 1);
 const _norm = new THREE.Vector3();
 const _quat = new THREE.Quaternion();
@@ -291,10 +291,12 @@ function tick() {
 
   // Buoy loop
   const { h: bh, dx: bdx, dy: bdy } = getWaveInfo(bwp.x, bwp.y, t);
-  buoyGroup.position.z = THREE.MathUtils.lerp(buoyGroup.position.z, bh - 0.2, 0.05);
+  buoyGroup.position.z = THREE.MathUtils.lerp(buoyGroup.position.z, bh - 0.24, 0.05);
   _norm.set(-bdx + 0.2*Math.sin(t), -bdy, 1).normalize();
   _norm.transformDirection(watersurf.matrixWorld);
   _quat.setFromUnitVectors(_up, _norm);
+  buoySpinQuat.setFromAxisAngle(_up, 2*Math.sin(0.05*t));
+  _quat.multiply(buoySpinQuat);
   buoyGroup.quaternion.slerp(_quat, 0.1);
 
   buoyLight.intensity = 0.15 + 0.15*Math.sin(2*t);
@@ -333,7 +335,7 @@ function tick() {
   }
 
   // Fog
-  scene.fog.density = 0.12 + 0.04 * Math.sin(0.05 * t);
+  scene.fog.density = 0.1 + 0.04 * Math.sin(0.05 * t);
 
   // Lightning
   lightning.next -= dt;
@@ -349,7 +351,7 @@ function tick() {
     if (lightning.duration <= 0) {
       lightning.active = false;
     } else {
-      lightning.intensity = clamp( lightning.intensity + (0.03 - Math.random() * 0.06), 0, 0.1 ); // Flicker
+      lightning.intensity = THREE.MathUtils.clamp( lightning.intensity + (0.03 - Math.random() * 0.06), 0, 0.1 ); // Flicker
     }
   }
 
