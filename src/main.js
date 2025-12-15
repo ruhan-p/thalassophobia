@@ -11,6 +11,7 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 import watervertex from "./shaders/watervertex.glsl";
 import waterfragment from "./shaders/waterfragment.glsl";
+import { mx_bilerp_0 } from "three/src/nodes/materialx/lib/mx_noise.js";
 
 const canvas = document.querySelector("#webgl");
 const scene = new THREE.Scene();
@@ -80,8 +81,8 @@ const customUniforms = {
   smallIterations: { value: 4.0 },
   opacityNear: { value: 0.0 },
   opacityFar: { value: 3.0 },
-  color1: { value: RgbToVec3(3, 6, 10) },
-  color2: { value: RgbToVec3(20, 25, 30) },
+  color1: { value: RgbToVec3(2, 4, 6) },
+  color2: { value: RgbToVec3(20, 24, 28) },
   fogColor: { value: new THREE.Color(tintcolor) },
   fogDensity: { value: 0.08 },
 };
@@ -112,8 +113,7 @@ seafloor.position.set(0, 0, -1.5); seafloor.rotation.z = -Math.PI / 8;
 scene.add(seafloor);
 
 // Light
-// const light = new THREE.AmbientLight(0xffffff, 5);
-const light = new THREE.PointLight(0xcacaca, 2, 0);
+const light = new THREE.PointLight(0xcacaca, 1, 0);
 light.position.set(-15, 25, 4);
 scene.add(light);
 
@@ -134,6 +134,10 @@ const buoyLightObj = new THREE.Mesh(new THREE.SphereGeometry(0.02, 32), new THRE
 }));
 buoyLightObj.position.set(0, 0, 0.39);
 buoyGroup.add(buoyLightObj);
+
+const buoyAmbLight = new THREE.PointLight(0xffffff, 0.4, 30);
+buoyAmbLight.position.set(-1, 0, 0.5);
+buoyGroup.add(buoyAmbLight);
 
 const loader = new OBJLoader();
 loader.load( '../assets/buoy.obj', function ( obj ) {
@@ -270,7 +274,7 @@ function tick() {
   camera.up.copy(csmooth);
   camera.lookAt(0, 0, 0);
 
-  bokehPass.uniforms['focus'].value = 8.0 + 2 * Math.sin(0.1*t);
+  bokehPass.uniforms['focus'].value = 10.0;
 
   // Buoy loop
   const { h: bh, dx: bdx, dy: bdy } = getWaveInfo(bwp.x, bwp.y, t);
@@ -314,6 +318,9 @@ function tick() {
     rainpos.setXYZ(i, x + vx, y + vy, z - fallSpeed);
     rainpos.setXYZ(i + 1, tx + vx, ty + vy, tz - fallSpeed);
   }
+
+  // Fog
+  scene.fog.density = 0.12 + 0.04 * Math.sin(0.05 * t);
 
   rainvel.needsUpdate = true;
   rainpos.needsUpdate = true;
