@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <link rel="stylesheet" href="/src/style.css">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer">
     <title>thalassophobia</title>
   </head>
   <body>
@@ -12,9 +12,12 @@
       <div class="label subtitle" tabindex="0">
         <p>The persistent and intense fear of deep bodies of water</p>
         <div class="subtitle__actions">
-          <a class="gh-link" href="https://github.com" target="_blank" rel="noopener noreferrer" title="Github">
-            <i class="fab fa-github" aria-hidden="true"></i>
+          <a class="action gh-link" href="https://github.com" target="_blank" rel="noopener noreferrer" aria-label="Github" title="Github">
+            <i class="fa-brands fa-github" aria-hidden="true"></i>
           </a>
+          <button id="audio-btn" class="action audio" type="button" aria-label="Toggle audio" title="Toggle audio">
+            <i id="audio-icon" class="fa-solid fa-volume-xmark" aria-hidden="true"></i>
+          </button>
         </div>
       </div>
     </div>

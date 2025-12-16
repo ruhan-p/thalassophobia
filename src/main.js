@@ -125,7 +125,7 @@ const buoyGroup = new THREE.Group();
 buoyGroup.position.set(0.8, -8, 0);
 scene.add(buoyGroup);
 
-const buoyLight = new THREE.PointLight(buoyLightColor, 0.1, 30);
+const buoyLight = new THREE.PointLight(buoyLightColor, 0.1, 40);
 buoyLight.position.set(0, 0, 0.5);
 buoyGroup.add(buoyLight);
 
@@ -261,6 +261,65 @@ window.addEventListener("load", () => {
   })
 });
 
+// Audio
+const audioIcon = document.getElementById("audio-icon");
+const audioBtn = document.getElementById("audio-btn");
+const rainAudio = new Audio("../assets/rain.mp3"); // Sound Effect by <a href="https://pixabay.com/users/donrain-26735743/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=110792">Franco Gonzalez</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=110792">Pixabay</a>
+const wavesAudio = new Audio("../assets/waves.mp3"); // Sound Effect by <a href="https://pixabay.com/users/mindmist-48855701/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=313367">Mind Mist</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=313367">Pixabay</a>
+const thunderAudio = [
+  new Audio("../assets/thunder1.mp3"),
+  new Audio("../assets/thunder2.mp3"),
+  new Audio("../assets/thunder3.mp3"),
+  new Audio("../assets/thunder4.mp3"),
+  new Audio("../assets/thunder5.mp3") ]; // Sound Effect by <a href="https://pixabay.com/users/dragon-studio-38165424/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=364468">DRAGON-STUDIO</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=364468">Pixabay</a>
+const creakingAudio = [
+  new Audio("../assets/creaking1.mp3"),
+  new Audio("../assets/creaking2.mp3"), ]; // Sound Effect by <a href="https://pixabay.com/users/dragon-studio-38165424/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=401724">DRAGON-STUDIO</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=401724">Pixabay</a>
+
+rainAudio.loop = true; wavesAudio.loop = true;
+rainAudio.volume = 0.5; wavesAudio.volume = 0.5;
+
+function getRand(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function playRandomThunder() {
+  const t = getRand(thunderAudio);
+  t.currentTime = 0;
+  t.play().catch(() => {});
+}
+
+function playRandomCreaking(rate) {
+  const c = getRand(creakingAudio);
+  c.currentTime = 0;
+  c.playbackRate = rate;
+  c.play().catch(() => {});
+}
+
+let audio = false;
+// Event listeners
+audioBtn?.addEventListener("click", async () => {
+  audio = !audio;
+  if (audio) {
+    try {
+      await rainAudio.play();
+      await wavesAudio.play();
+      audioIcon.classList.remove("fa-volume-xmark");
+      audioIcon.classList.add("fa-volume-high");
+      audioBtn.setAttribute("aria-pressed", "true");
+    } catch (err) { audio = false; }
+  } else {
+    rainAudio.pause();
+    wavesAudio.pause();
+    thunderAudio.forEach(t => { t.pause(); });
+    creakingAudio.forEach(c => { c.pause(); });
+    audioIcon.classList.remove("fa-volume-high");
+    audioIcon.classList.add("fa-volume-xmark");
+    audioBtn.setAttribute("aria-pressed", "false");
+  }
+});
+
+
 // Animation loop
 const cwp = new THREE.Vector3(); cwp.copy(camera.position); watersurf.worldToLocal(cwp);
 const bwp = new THREE.Vector3(); bwp.copy(buoyGroup.position); watersurf.worldToLocal(bwp);
@@ -273,6 +332,8 @@ const _colorScratch = new THREE.Color();
 
 const clock = new THREE.Clock();
 const offset = Math.random() * 1000;
+
+let creakingnext = 3.0;
 
 function tick() {
   const dt = clock.getDelta();
@@ -340,6 +401,8 @@ function tick() {
     rainpos.setXYZ(i, x + vx, y + vy, z - fallSpeed);
     rainpos.setXYZ(i + 1, tx + vx, ty + vy, tz - fallSpeed);
   }
+  rainvel.needsUpdate = true;
+  rainpos.needsUpdate = true;
 
   // Fog
   scene.fog.density = 0.1 + 0.04 * Math.sin(0.05 * t);
@@ -351,6 +414,7 @@ function tick() {
     lightning.active = true;
     lightning.next = Math.random() * 6.0 + 2.0;
     lightning.duration = Math.random() * 1.5;
+    if (audio) playRandomThunder();
   }
 
   if (lightning.active) {
@@ -373,9 +437,12 @@ function tick() {
   scene.fog.color.copy(_colorScratch);
   scene.background.copy(_colorScratch);
 
-
-  rainvel.needsUpdate = true;
-  rainpos.needsUpdate = true;
+  // Creaking
+  creakingnext -= dt;
+  if (creakingnext < 0 && audio) {
+    creakingnext = Math.random() * 7 + 3.0;
+    playRandomCreaking(Math.random() * 0.2 + 0.8);
+  }
 
   composer.render();
   requestAnimationFrame(tick);
