@@ -6,42 +6,26 @@ window.addEventListener("load", () => {
 });
 
 // Audio
-const audioIcon = document.getElementById("audio-icon");
-const audioBtn = document.getElementById("audio-btn");
+let audio = false;
 const rainAudio = new Audio("../assets/rain.mp3"); // Sound Effect by <a href="https://pixabay.com/users/donrain-26735743/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=110792">Franco Gonzalez</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=110792">Pixabay</a>
 const wavesAudio = new Audio("../assets/waves.mp3"); // Sound Effect by <a href="https://pixabay.com/users/mindmist-48855701/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=313367">Mind Mist</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=313367">Pixabay</a>
 const thunderAudio = [
   new Audio("../assets/thunder1.mp3"),
   new Audio("../assets/thunder2.mp3"),
   new Audio("../assets/thunder3.mp3"),
-  new Audio("../assets/thunder4.mp3"),
-  new Audio("../assets/thunder5.mp3") ]; // Sound Effect by <a href="https://pixabay.com/users/dragon-studio-38165424/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=364468">DRAGON-STUDIO</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=364468">Pixabay</a>
+  new Audio("../assets/thunder4.mp3") ]; // Sound Effect by <a href="https://pixabay.com/users/dragon-studio-38165424/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=364468">DRAGON-STUDIO</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=364468">Pixabay</a>
 const creakingAudio = [
   new Audio("../assets/creaking1.mp3"),
-  new Audio("../assets/creaking2.mp3"), ]; // Sound Effect by <a href="https://pixabay.com/users/dragon-studio-38165424/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=401724">DRAGON-STUDIO</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=401724">Pixabay</a>
+  new Audio("../assets/creaking2.mp3") ]; // Sound Effect by <a href="https://pixabay.com/users/dragon-studio-38165424/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=401724">DRAGON-STUDIO</a> from <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=401724">Pixabay</a>
 
 rainAudio.loop = true; wavesAudio.loop = true;
 rainAudio.volume = 0.5; wavesAudio.volume = 0.5;
 
-function getRand(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
+export { audio, thunderAudio, creakingAudio };
 
-function playRandomThunder() {
-  const t = getRand(thunderAudio);
-  t.currentTime = 0;
-  t.play().catch(() => {});
-}
-
-function playRandomCreaking(rate) {
-  const c = getRand(creakingAudio);
-  c.currentTime = 0;
-  c.playbackRate = rate;
-  c.play().catch(() => {});
-}
-
-let audio = false;
 // Event listeners
+const audioIcon = document.getElementById("audio-icon");
+const audioBtn = document.getElementById("audio-btn");
 audioBtn?.addEventListener("click", async () => {
   audio = !audio;
   if (audio) {

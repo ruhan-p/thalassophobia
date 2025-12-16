@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { audio, thunderAudio, creakingAudio } from "./ui.js";
 
 // Post-Processing Imports
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
@@ -170,6 +171,24 @@ loader.load( '../assets/buoy.obj', function ( obj ) {
 }, undefined, function ( error ) {
   console.error( error );
 } );
+
+// Audio
+function getRand(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function playRandomThunder() {
+  const t = getRand(thunderAudio);
+  t.currentTime = 0;
+  t.play().catch(() => {});
+}
+
+function playRandomCreaking(rate) {
+  const c = getRand(creakingAudio);
+  c.currentTime = 0;
+  c.playbackRate = rate;
+  c.play().catch(() => {});
+}
 
 // Lightning
 const lightning = {
