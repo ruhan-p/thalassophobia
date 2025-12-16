@@ -5,6 +5,8 @@ body {
   background: #020617;
   font-family: "Iowan Old Style", "Georgia", serif;
 }
+
+/* Text */
 .labels {
   display: flex;
   flex-direction: column;
@@ -16,6 +18,8 @@ body {
   padding: 20px;
   z-index: 1;
   border-radius: 16px;
+  letter-spacing: 0.5ch;
+  position: relative;
 
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -29,15 +33,32 @@ body {
 .title {
   color: rgb(112, 126, 148);
   background: rgba(32, 38, 46, 0.5);
-  letter-spacing: 0.5ch;
   font-size: 42px;
 }
 .subtitle {
-  color: rgb(62, 75, 95);
-  background: rgba(18, 23, 30, 0.5);
+  flex-direction: column;
+  gap: 12px;
   max-width: 500px;
-  letter-spacing: 0.5ch;
+  color: rgb(99, 114, 136);
   font-size: 18px;
+
+  cursor: default;
+}
+.subtitle::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(18, 23, 30, 0.5);
+  z-index: 0;
+  pointer-events: none;
+
+  transform-origin: top center;
+  transform: scaleY(1);
+  transition: transform 800ms ease;
+}
+.subtitle:hover::before {
+  transform: scaleY(1.3);
 }
 .title.loaded {
   animation: fadeIn 3s ease-out 1s forwards;
@@ -45,10 +66,44 @@ body {
 .subtitle.loaded {
 animation: fadeIn 3s ease-out 2s forwards;
 }
-
 @keyframes fadeIn {
   to {opacity: 1; transform: translateY(0); filter: blur(0px); }
 }
+
+/* Actions */
+.subtitle__actions {
+  position: absolute;
+  inset: 108px auto auto 250px;
+  display: flex;
+  gap: 10px;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 500ms ease 200ms;
+}
+.subtitle:hover .subtitle__actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+.gh-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  text-decoration: none;
+  background: rgba(49, 57, 70, 0.5);
+}
+
+.gh-link i {
+  font-family: "Font Awesome 5 Brands";
+  font-weight: 400;
+  font-size: 22px;
+  color: #fff;
+}
+
+/* Canvas */
 canvas {
   display: block;
   position: fixed;
