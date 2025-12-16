@@ -12,6 +12,9 @@
       <div class="label subtitle" tabindex="0">
         <p>The persistent and intense fear of deep bodies of water</p>
         <div class="subtitle__actions">
+          <button id="info-btn" class="action info" type="button" aria-label="Info and credits" title="Info and credits">
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          </button>
           <a class="action gh-link" href="https://github.com" target="_blank" rel="noopener noreferrer" aria-label="Github" title="Github">
             <i class="fa-brands fa-github" aria-hidden="true"></i>
           </a>
@@ -24,13 +27,12 @@
           <button id="settings-btn" class="action settings" type="button" aria-label="Settings" title="Settings">
             <i class="fa-solid fa-gear" aria-hidden="true"></i>
           </button>
-          <button id="credits-btn" class="action credits" type="button" aria-label="Credits" title="Credits">
-            <i class="fa-solid fa-address-book" aria-hidden="true"></i>
-          </button>
+
         </div>
       </div>
     </div>
     <canvas id="webgl"></canvas>
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/scene.js"></script>
+    <script type="module" src="/src/ui.js"></script>
   </body>
 </html>
