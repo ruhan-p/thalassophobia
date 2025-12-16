@@ -37,8 +37,8 @@ body {
 }
 .subtitle {
   flex-direction: column;
-  gap: 12px;
   max-width: 500px;
+  gap: 12px;
   color: rgb(99, 114, 136);
   font-size: 18px;
 
@@ -73,9 +73,10 @@ animation: fadeIn 3s ease-out 2s forwards;
 /* Actions */
 .subtitle__actions {
   position: absolute;
-  inset: 108px auto auto 250px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  gap: 10px;
+  gap: 24px;
 
   opacity: 0;
   pointer-events: none;
@@ -103,7 +104,7 @@ i {
   font-weight: 400;
   line-height: 1;
   font-size: 20px;
-  color: #fff;
+  color: rgb(99, 114, 136);
 }
 .fa-github { transform: translateX(2px); } /* nudge for some reason :( */
 /* Canvas */
