@@ -254,6 +254,13 @@ window.addEventListener("resize", () => {
   composer.setSize(width, height);
 });
 
+// On Load
+window.addEventListener("load", () => {
+  document.querySelectorAll('.label').forEach(p => {
+    p.classList.add("loaded");
+  })
+});
+
 // Animation loop
 const cwp = new THREE.Vector3(); cwp.copy(camera.position); watersurf.worldToLocal(cwp);
 const bwp = new THREE.Vector3(); bwp.copy(buoyGroup.position); watersurf.worldToLocal(bwp);
