@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { audio, thunderAudio, creakingAudio } from "./ui.js";
+import { audio, thunderAudio, creakingAudio, tintDefaultHex, waterDefaultHex } from "./ui.js";
 import { postprocessingenabled, rainenabled, buoyenabled, thunderenabled } from "./ui.js";
 
 // Post-Processing Imports
@@ -21,15 +21,21 @@ const meshsize = 24;
 const res = 320;
 const watergeo = new THREE.PlaneGeometry(meshsize, meshsize, res, res);
 
-function RgbToVec3(r, g, b) {
+function hexToVec3(hex) {
+  const parsed = hex.replace("#", "");
+  const num = parseInt(parsed, 16);
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
   return new THREE.Vector3(r / 255, g / 255, b / 255);
 }
 
-const tintcolor = 0x555a5f;
-const watercolor = [20, 26, 32];
+const tintcolor = tintDefaultHex || 0x555a5f;
+const watercolor = waterDefaultHex || "#141a20";
 const flashcolor = 0xb4c1d1;
+const tintColorBase = new THREE.Color(tintcolor);
 
-scene.background = new THREE.Color(tintcolor);
+scene.background = tintColorBase.clone();
 scene.fog = new THREE.FogExp2(tintcolor, 0.08);
 
 // Camera
@@ -83,9 +89,9 @@ const customUniforms = {
   speed4: { value: 0.4 },
   steep: { value: 1.0 },
   smallIterations: { value: 4.0 },
-  color1: { value: RgbToVec3(2, 4, 6) },
-  color2: { value: RgbToVec3(...watercolor) },
-  fogColor: { value: new THREE.Color(tintcolor) },
+  color1: { value: hexToVec3('#020406') },
+  color2: { value: hexToVec3(watercolor) },
+  fogColor: { value: tintColorBase.clone() },
   fogDensity: { value: 0.08 },
 };
 
@@ -195,9 +201,30 @@ const lightning = {
   intensity: 0,
   next: 3.0,
   duration: 0.0,
-  baseColor: new THREE.Color(tintcolor),
+  baseColor: tintColorBase.clone(),
   flashColor: new THREE.Color(flashcolor),
 };
+
+function applyTintColor(hex) {
+  tintColorBase.set(hex);
+  scene.background.copy(tintColorBase);
+  scene.fog.color.copy(tintColorBase);
+  customUniforms.fogColor.value.copy(tintColorBase);
+  lightning.baseColor.copy(tintColorBase);
+}
+
+document.addEventListener("tintcolor-change", (event) => {
+  if (event?.detail) {
+    applyTintColor(event.detail);
+  }
+});
+applyTintColor(tintcolor);
+
+document.addEventListener("watercolor-change", (event) => {
+  if (event?.detail) {
+    uniforms.color2.value = hexToVec3(event.detail);
+  }
+});
 
 // Rain
 const rainCount = 2500;
@@ -290,9 +317,11 @@ let creakingnext = 3.0;
 function tick() {
   const dt = clock.getDelta();
   const t = clock.getElapsedTime() + offset;
-  
+
+  // Updates
   uniforms.time.value = t;
 
+  // Wind
   const wx = 2 * Math.cos(t*0.05 + 56.78);
   const wy = 0.1 * Math.sin(t*0.02 + 134.57);
 

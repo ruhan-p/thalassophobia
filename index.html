@@ -46,26 +46,57 @@
     <dialog class="settingsdialog">
       <div class="controls">
         <h2>Settings</h2>
-        <label class="switch" id="s-post">
-          <span class="switchlabel">Post Processing</span>
-          <input type="checkbox" class="input" checked/>
-          <span class="slider"></span>
-        </label>
-        <label class="switch" id="s-rain">
-          <span class="switchlabel">Rain</span>
-          <input type="checkbox" class="input" checked/>
-          <span class="slider"></span>
-        </label>
-        <label class="switch" id="s-thun">
-          <span class="switchlabel">Thunder</span>
-          <input type="checkbox" class="input" checked/>
-          <span class="slider"></span>
-        </label>
-        <label class="switch" id="s-buoy">
-          <span class="switchlabel">Buoy</span>
-          <input type="checkbox" class="input" checked/>
-          <span class="slider"></span>
-        </label>
+        <div class="switches">
+          <label class="switch" id="s-post">
+            <span class="switchlabel">Post</span>
+            <input type="checkbox" class="input" checked/>
+            <span class="slider"></span>
+          </label>
+          <label class="switch" id="s-rain">
+            <span class="switchlabel">Rain</span>
+            <input type="checkbox" class="input" checked/>
+            <span class="slider"></span>
+          </label>
+          <label class="switch" id="s-thun">
+            <span class="switchlabel">Flash</span>
+            <input type="checkbox" class="input" checked/>
+            <span class="slider"></span>
+          </label>
+          <label class="switch" id="s-buoy">
+            <span class="switchlabel">Buoy</span>
+            <input type="checkbox" class="input" checked/>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="colorpicker" aria-label="Tint color picker">
+          <div class="colorpicker__row">
+            <span class="switchlabel">Tint</span>
+            <span class="colorpicker__chip">
+              <span id="tint-value" class="colorpicker__value">#555a5f</span>
+              <span id="tint-preview" class="colorpicker__swatch" aria-hidden="true"></span>
+            </span>
+          </div>
+          <div class="colorpicker__saturation" id="tint-sat">
+            <div class="colorpicker__saturation-white"></div>
+            <div class="colorpicker__saturation-black"></div>
+            <div class="colorpicker__pointer" id="tint-sat-pointer"></div>
+          </div>
+          <div class="colorpicker__hue" id="tint-hue" aria-label="Hue slider">
+            <div class="colorpicker__pointer colorpicker__pointer--hue" id="tint-hue-pointer"></div>
+          </div>
+        </div>
+        <div class="colorpicker" aria-label="Water color picker">
+          <div class="colorpicker__row">
+            <span class="switchlabel">Water</span>
+            <span class="colorpicker__chip">
+              <span id="water-value" class="colorpicker__value">#141a20</span>
+              <span id="water-preview" class="colorpicker__swatch" aria-hidden="true"></span>
+            </span>
+          </div>
+          <div class="colorpicker__hue" id="water-hue" aria-label="Hue slider">
+            <div class="colorpicker__pointer colorpicker__pointer--hue" id="water-hue-pointer"></div>
+          </div>
+        </div>
       </div>
     </dialog>
     <canvas id="webgl"></canvas>
