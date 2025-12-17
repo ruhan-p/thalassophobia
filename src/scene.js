@@ -25,7 +25,7 @@ function RgbToVec3(r, g, b) {
   return new THREE.Vector3(r / 255, g / 255, b / 255);
 }
 
-const tintcolor = 0x373F45;
+const tintcolor = 0x555a5f;
 const watercolor = [20, 26, 32];
 const flashcolor = 0xb4c1d1;
 
@@ -257,7 +257,7 @@ composer.addPass(bloomPass);
 
 const vignettePass = new ShaderPass(VignetteShader);
 vignettePass.uniforms["offset"].value = 0.9;
-vignettePass.uniforms["darkness"].value = 1.0;
+vignettePass.uniforms["darkness"].value = 1.2;
 composer.addPass(vignettePass);
 
 // Resize
