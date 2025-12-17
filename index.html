@@ -15,8 +15,24 @@
           <button id="info-btn" class="action info" type="button" aria-label="Info and credits" title="Info and credits">
             <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
           </button>
+          <dialog class="infomodal">
+            <a class="action infomodal-close" aria-label="Close info" title="Close info">
+              <i class="fa-solid fa-xmark" aria-hidden="true" style="transform: translate3d(2px,5px,0px)"></i>
+            </a> 
+            <h1>About</h1>
+            <p>This project was my attempt at making a realistic stormy sea simulation using the THREE.js JavaScript library. It includes GLSL shaders for the wave texture and color, as well as some post-processing to create a realistic look. The buoy geometry and texture was created by me in Blender, which was then imported into THREE.js</p>
+            <h2>Code Credits</h2>
+            <p>Inspiration from <a href="https://www.youtube.com/watch?v=o9IsWErMNbQ">NrZero's Thalassophobia render</a> using Blender</p>
+            <p>GLSL shaders based on various projects using the <a href="https://threejs-journey.com/lessons/raging-sea#">threejs-journey.com</a> tutorial</p>
+            <p>
+            <h2>Audio Credits</h2>
+            <p>Rain background sound by <a href="https://pixabay.com/users/donrain-26735743/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=110792">Franco Gonzalez</a> on <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=110792">Pixabay</a></p>
+            <p>Wave background sound by <a href="https://pixabay.com/users/mindmist-48855701/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=313367">Mind Mist</a> on <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=313367">Pixabay</a></p>
+            <p>Thunder sounds by <a href="https://pixabay.com/users/dragon-studio-38165424/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=364468">DRAGON-STUDIO</a> on <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=364468">Pixabay</a></p>
+            <p>Creaking sounds by <a href="https://pixabay.com/users/dragon-studio-38165424/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=401724">DRAGON-STUDIO</a> on <a href="https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=401724">Pixabay</a></p>
+          </dialog>
           <a class="action gh-link" href="https://github.com" target="_blank" rel="noopener noreferrer" aria-label="Github" title="Github">
-            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            <i class="fa-brands fa-github" aria-hidden="true" style="transform: translateX(2px); "></i>
           </a>
           <button id="audio-btn" class="action audio" type="button" aria-label="Toggle audio" title="Toggle audio">
             <i id="audio-icon" class="fa-solid fa-volume-xmark" aria-hidden="true"></i>
