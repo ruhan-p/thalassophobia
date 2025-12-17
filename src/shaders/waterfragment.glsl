@@ -3,8 +3,6 @@ export default `
   uniform vec3 color1;
   uniform vec3 color2;
   uniform float time;
-  uniform float opacityNear;
-  uniform float opacityFar;
 
   varying float vHeight;
   varying vec3  vWorldPos;
@@ -78,16 +76,10 @@ export default `
     float foam = clamp(collisionComponent, 0.0, 1.0);
     foam = smoothstep(0.08, 0.75, foam);
 
-    // Alpha
-    float dist = length(vWorldPos - cameraPosition);
-    float distMix = smoothstep(opacityNear, opacityFar, dist);
-    float alpha = mix(0.9, 1.0, distMix);
-
-
     // Mixing
     vec3 foamed = mix(finalColor, vec3(0.5,0.55,0.60), foam);
 
-    gl_FragColor = vec4(foamed, clamp(alpha, 0.0, 1.0));
+    gl_FragColor = vec4(foamed, 0.95);
     
     #include <fog_fragment>
   }

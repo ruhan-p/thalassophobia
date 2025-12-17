@@ -82,8 +82,6 @@ const customUniforms = {
   speed4: { value: 0.4 },
   steep: { value: 1.0 },
   smallIterations: { value: 4.0 },
-  opacityNear: { value: 0.0 },
-  opacityFar: { value: 3.0 },
   color1: { value: RgbToVec3(2, 4, 6) },
   color2: { value: RgbToVec3(...watercolor) },
   fogColor: { value: new THREE.Color(tintcolor) },
