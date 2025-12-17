@@ -67,6 +67,16 @@
             <input type="checkbox" class="input" checked/>
             <span class="slider"></span>
           </label>
+          <label class="switch" id="s-camera">
+            <span class="switchlabel">Tilt</span>
+            <input type="checkbox" class="input" checked/>
+            <span class="slider"></span>
+          </label>
+          <label class="switch" id="s-fog">
+            <span class="switchlabel">Fog</span>
+            <input type="checkbox" class="input" checked/>
+            <span class="slider"></span>
+          </label>
         </div>
         <div class="colorpicker" aria-label="Tint color picker">
           <div class="colorpicker__row">
@@ -95,6 +105,23 @@
           </div>
           <div class="colorpicker__hue" id="water-hue" aria-label="Hue slider">
             <div class="colorpicker__pointer colorpicker__pointer--hue" id="water-hue-pointer"></div>
+          </div>
+        </div>
+        <div class="colorpicker" aria-label="Buoy light color picker">
+          <div class="colorpicker__row">
+            <span class="switchlabel">Buoy</span>
+            <span class="colorpicker__chip">
+              <span id="buoy-value" class="colorpicker__value">#141a20</span>
+              <span id="buoy-preview" class="colorpicker__swatch" aria-hidden="true"></span>
+            </span>
+          </div>
+          <div class="colorpicker__saturation" id="buoy-sat">
+            <div class="colorpicker__saturation-white"></div>
+            <div class="colorpicker__saturation-black"></div>
+            <div class="colorpicker__pointer" id="buoy-sat-pointer"></div>
+          </div>
+          <div class="colorpicker__hue" id="buoy-hue" aria-label="Hue slider">
+            <div class="colorpicker__pointer colorpicker__pointer--hue" id="buoy-hue-pointer"></div>
           </div>
         </div>
       </div>

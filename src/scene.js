@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { audio, thunderAudio, creakingAudio, tintDefaultHex, waterDefaultHex } from "./ui.js";
-import { postprocessingenabled, rainenabled, buoyenabled, thunderenabled } from "./ui.js";
+import { audio, thunderAudio, creakingAudio } from "./ui.js";
+import switches from "./ui.js";
 
 // Post-Processing Imports
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
@@ -30,8 +30,9 @@ function hexToVec3(hex) {
   return new THREE.Vector3(r / 255, g / 255, b / 255);
 }
 
-const tintcolor = tintDefaultHex || 0x555a5f;
-const watercolor = waterDefaultHex || "#141a20";
+const tintcolor = 0x555a5f;
+const watercolor = '#555a5f';
+const buoycolor = 0xff8f80;
 const flashcolor = 0xb4c1d1;
 const tintColorBase = new THREE.Color(tintcolor);
 
@@ -126,25 +127,24 @@ light.position.set(-15, 25, 4);
 scene.add(light);
 
 // Buoy
-const buoyLightColor = 0xff8f80;
 const buoyGroup = new THREE.Group();
 buoyGroup.position.set(0.8, -8, 0);
 scene.add(buoyGroup);
 
-const buoyLight = new THREE.PointLight(buoyLightColor, 0.1, 40);
+const buoyLight = new THREE.PointLight(buoycolor, 0.1, 10);
 buoyLight.position.set(0, 0, 0.5);
 buoyGroup.add(buoyLight);
 
 const buoyLightObj = new THREE.Mesh(new THREE.SphereGeometry(0.02, 32), new THREE.MeshStandardMaterial({
-  emissive: buoyLightColor,
+  emissive: buoycolor,
   metalness: 0,
   roughness: 1
 }));
 buoyLightObj.position.set(0, 0, 0.39);
 buoyGroup.add(buoyLightObj);
 
-const buoyLight2 = new THREE.PointLight(0xffffff, 0.4, 30);
-buoyLight2.position.set(-1, 0, 0.5);
+const buoyLight2 = new THREE.PointLight(0xffffff, 0.7, 10);
+buoyLight2.position.set(1, 0, 0.5);
 buoyGroup.add(buoyLight2);
 
 const loader = new OBJLoader();
@@ -204,27 +204,6 @@ const lightning = {
   baseColor: tintColorBase.clone(),
   flashColor: new THREE.Color(flashcolor),
 };
-
-function applyTintColor(hex) {
-  tintColorBase.set(hex);
-  scene.background.copy(tintColorBase);
-  scene.fog.color.copy(tintColorBase);
-  customUniforms.fogColor.value.copy(tintColorBase);
-  lightning.baseColor.copy(tintColorBase);
-}
-
-document.addEventListener("tintcolor-change", (event) => {
-  if (event?.detail) {
-    applyTintColor(event.detail);
-  }
-});
-applyTintColor(tintcolor);
-
-document.addEventListener("watercolor-change", (event) => {
-  if (event?.detail) {
-    uniforms.color2.value = hexToVec3(event.detail);
-  }
-});
 
 // Rain
 const rainCount = 2500;
@@ -299,6 +278,30 @@ window.addEventListener("resize", () => {
   composer.setSize(width, height);
 });
 
+// Event Listeners / Color linkage
+document.addEventListener("tintcolor-change", (event) => {
+  if (event?.detail) {
+    tintColorBase.set(event.detail);
+    scene.background.copy(tintColorBase);
+    scene.fog.color.copy(tintColorBase);
+    customUniforms.fogColor.value.copy(tintColorBase);
+    lightning.baseColor.copy(tintColorBase);
+  }
+});
+
+document.addEventListener("watercolor-change", (event) => {
+  if (event?.detail) {
+    uniforms.color2.value = hexToVec3(event.detail);
+  }
+});
+
+document.addEventListener("buoycolor-change", (event) => {
+  const hex = event?.detail;
+  const value = parseInt(hex.replace("#", ""), 16);
+  buoyLight?.color.setHex(value);
+  buoyLightObj?.material.emissive.setHex(value);
+});
+
 // Animation loop
 const cwp = new THREE.Vector3(); cwp.copy(camera.position); watersurf.worldToLocal(cwp);
 const bwp = new THREE.Vector3(); bwp.copy(buoyGroup.position); watersurf.worldToLocal(bwp);
@@ -333,11 +336,11 @@ function tick() {
   _norm.transformDirection(watersurf.matrixWorld);
 
   csmooth.lerp(_norm, 0.05);
-  camera.up.copy(csmooth);
+  if (switches.tilt) camera.up.copy(csmooth);
   camera.lookAt(0, 0, 0);
 
   // Buoy loop
-  buoyGroup.visible = buoyenabled;
+  buoyGroup.visible = switches.buoy;
   const { h: bh, dx: bdx, dy: bdy } = getWaveInfo(bwp.x, bwp.y, t);
   buoyGroup.position.z = THREE.MathUtils.lerp(buoyGroup.position.z, bh - 0.24, 0.05);
   _norm.set(-bdx + 0.2*Math.sin(t), -bdy, 1).normalize();
@@ -351,8 +354,8 @@ function tick() {
   buoyLightObj.material.emissiveIntensity = 1.5 + 1.5*Math.sin(2*t);
   
   // Rain loop
-  rain.visible = rainenabled;
-  if (rainenabled) {
+  rain.visible = switches.rain;
+  if (switches.rain) {
     for (let i = 0; i < rainpos.count; i += 2) {
       const x = rainpos.getX(i); const y = rainpos.getY(i); const z = rainpos.getZ(i);
       const tx = rainpos.getX(i + 1); const ty = rainpos.getY(i + 1); const tz = rainpos.getZ(i + 1);
@@ -387,10 +390,10 @@ function tick() {
   }
 
   // Fog
-  scene.fog.density = 0.1 + 0.08 * Math.sin(0.1 * t);
+  if (switches.fog) { scene.fog.density = 0.1 + 0.08 * Math.sin(0.1 * t) } else { scene.fog.density = 0; };
 
   // Lightning
-  if (thunderenabled) { lightning.next -= dt; } else { lightning.active = false; };
+  if (switches.thunder) { lightning.next -= dt; } else { lightning.active = false; };
 
   if (lightning.next <= 0) {
     lightning.active = true;
@@ -426,7 +429,7 @@ function tick() {
     playRandomCreaking(Math.random() * 0.2 + 0.8);
   }
 
-  if (postprocessingenabled) {
+  if (switches.post) {
     bokehPass.enabled = true;
     bokehPass.uniforms['focus'].value = 10.0 + 2*Math.sin(t);
     bloomPass.enabled = true;

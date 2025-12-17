@@ -22,25 +22,28 @@ rainAudio.loop = true; wavesAudio.loop = true;
 rainAudio.volume = 0.5; wavesAudio.volume = 0.5;
 
 export { audio, thunderAudio, creakingAudio };
-export const tintDefaultHex = "#555a5f";
-export const waterDefaultHex = "#141a20";
 
 // Settings
 let showsettings = false;
-let postprocessingenabled = true;
-let rainenabled = true;
-let thunderenabled = true;
-let buoyenabled = true;
+const switches = { post: true, rain: true, thunder: true, buoy: true, tilt: true, fog: true, };
+export default switches;
 
-const postToggle = document.getElementById('s-post');
-const rainToggle = document.getElementById('s-rain');
-const thunderToggle = document.getElementById('s-thun');
-const buoyToggle = document.getElementById('s-buoy');
-postToggle.addEventListener('change', (e) => { postprocessingenabled = e.target.checked; });
-rainToggle.addEventListener('change', (e) => { rainenabled = e.target.checked; });
-thunderToggle.addEventListener('change', (e) => { thunderenabled = e.target.checked; });
-buoyToggle.addEventListener('change', (e) => { buoyenabled = e.target.checked; });
-export { postprocessingenabled, rainenabled, thunderenabled, buoyenabled };
+function bindToggle(id, key) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener("change", (e) => {
+    switches[key] = e.target.checked;
+    console.log(switches);
+  });
+}
+
+bindToggle("s-post", "post");
+bindToggle("s-rain", "rain");
+bindToggle("s-thun", "thunder");
+bindToggle("s-buoy", "buoy");
+bindToggle("s-camera", "tilt");
+bindToggle("s-fog", "fog");
+
 
 // Event listeners
 const infoBtn = document.getElementById('info-btn');
@@ -215,5 +218,7 @@ function createColorPicker(prefix, defaultHex, eventName) {
   render(true);
 }
 
+const tintDefaultHex = "#555a5f"; const waterDefaultHex = "#141a20"; const buoyDefaultHex = "#ff8f80";
 createColorPicker("tint", tintDefaultHex, "tintcolor-change");
 createColorPicker("water", waterDefaultHex, "watercolor-change");
+createColorPicker("buoy", buoyDefaultHex, "buoycolor-change");
