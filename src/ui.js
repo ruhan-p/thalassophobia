@@ -23,10 +23,29 @@ rainAudio.volume = 0.5; wavesAudio.volume = 0.5;
 
 export { audio, thunderAudio, creakingAudio };
 
+// Settings
+let showsettings = false;
+let postprocessingenabled = true;
+let rainenabled = true;
+let thunderenabled = true;
+let buoyenabled = true;
+
+const postToggle = document.getElementById('s-post');
+const rainToggle = document.getElementById('s-rain');
+const thunderToggle = document.getElementById('s-thun');
+const buoyToggle = document.getElementById('s-buoy');
+postToggle.addEventListener('change', (e) => { postprocessingenabled = e.target.checked; });
+rainToggle.addEventListener('change', (e) => { rainenabled = e.target.checked; });
+thunderToggle.addEventListener('change', (e) => { thunderenabled = e.target.checked; });
+buoyToggle.addEventListener('change', (e) => { buoyenabled = e.target.checked; });
+export { postprocessingenabled, rainenabled, thunderenabled, buoyenabled };
+
 // Event listeners
 const infoBtn = document.getElementById('info-btn');
 const infoClose = document.querySelector('.infomodal-close');
 const infomodal = document.querySelector('.infomodal');
+const settingsBtn = document.getElementById('settings-btn');
+const settingsdialog = document.querySelector('.settingsdialog');
 const audioIcon = document.getElementById("audio-icon");
 const audioBtn = document.getElementById("audio-btn");
 
@@ -53,3 +72,11 @@ audioBtn?.addEventListener("click", async () => {
 
 infoBtn?.addEventListener("click", () => { infomodal.showModal(); });
 infoClose?.addEventListener("click", () => { infomodal.close(); });
+settingsBtn?.addEventListener("click", () => {
+  if (showsettings) {
+    settingsdialog.close();
+  } else {
+    settingsdialog.show();
+  }
+  showsettings = !showsettings;
+});

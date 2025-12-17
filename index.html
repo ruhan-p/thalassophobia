@@ -37,16 +37,37 @@
           <button id="audio-btn" class="action audio" type="button" aria-label="Toggle audio" title="Toggle audio">
             <i id="audio-icon" class="fa-solid fa-volume-xmark" aria-hidden="true"></i>
           </button>
-          <button id="fp-btn" class="action fp" type="button" aria-label="Enter first person" title="Enter first person">
-            <i class="fa-solid fa-arrow-pointer" aria-hidden="true"></i>
-          </button>
           <button id="settings-btn" class="action settings" type="button" aria-label="Settings" title="Settings">
             <i class="fa-solid fa-gear" aria-hidden="true"></i>
           </button>
-
         </div>
       </div>
     </div>
+    <dialog class="settingsdialog">
+      <div class="controls">
+        <h2>Settings</h2>
+        <label class="switch" id="s-post">
+          <span class="switchlabel">Post Processing</span>
+          <input type="checkbox" class="input" checked/>
+          <span class="slider"></span>
+        </label>
+        <label class="switch" id="s-rain">
+          <span class="switchlabel">Rain</span>
+          <input type="checkbox" class="input" checked/>
+          <span class="slider"></span>
+        </label>
+        <label class="switch" id="s-thun">
+          <span class="switchlabel">Thunder</span>
+          <input type="checkbox" class="input" checked/>
+          <span class="slider"></span>
+        </label>
+        <label class="switch" id="s-buoy">
+          <span class="switchlabel">Buoy</span>
+          <input type="checkbox" class="input" checked/>
+          <span class="slider"></span>
+        </label>
+      </div>
+    </dialog>
     <canvas id="webgl"></canvas>
     <script type="module" src="/src/ui.js"></script>
     <script type="module" src="/src/scene.js"></script>

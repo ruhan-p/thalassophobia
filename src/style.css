@@ -6,6 +6,15 @@ body {
   font-family: "Iowan Old Style", "Georgia", serif;
 }
 
+/* Canvas */
+canvas {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;
+}
+
 /* Text */
 .labels {
   display: flex;
@@ -143,11 +152,56 @@ dialog::backdrop {
   display: inline;
   color: rgb(112, 126, 148);
 }
-/* Canvas */
-canvas {
-  display: block;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 0;
+
+.settingsdialog {
+  z-index: 1;
+  position: absolute;
+  inset: 32px 32px auto auto;
+}
+
+.controls {
+  display: flex;
+  align-items: end;
+  flex-direction: column;
+}
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.switch .input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.switch .slider {
+  position: relative;
+  width: 32px;
+  height: 16px;
+  flex-shrink: 0;
+  background-color: rgba(32, 38, 46, 0.5);
+  border: 1px solid rgb(112, 126, 148);
+  border-radius: 6px;
+}
+.switch .slider::before {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  inset: auto auto 2px 2px;
+  background: white;
+  border-radius: 4px;
+  transition: transform 100ms;
+}
+.switch .input:checked + .slider {
+  background-color: rgb(112, 126, 148);
+}
+
+.switch .input:checked + .slider::before {
+  transform: translateX(16px);
+}
+
+.switchlabel {
+  margin: 0;
 }

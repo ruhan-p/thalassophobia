@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { audio, thunderAudio, creakingAudio } from "./ui.js";
+import { postprocessingenabled, rainenabled, buoyenabled, thunderenabled } from "./ui.js";
 
 // Post-Processing Imports
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
@@ -255,8 +256,8 @@ bloomPass.radius = 1.0;
 composer.addPass(bloomPass);
 
 const vignettePass = new ShaderPass(VignetteShader);
-vignettePass.uniforms["offset"].value = 0.6;
-vignettePass.uniforms["darkness"].value = 1.4;
+vignettePass.uniforms["offset"].value = 0.9;
+vignettePass.uniforms["darkness"].value = 1.0;
 composer.addPass(vignettePass);
 
 // Resize
@@ -306,9 +307,8 @@ function tick() {
   camera.up.copy(csmooth);
   camera.lookAt(0, 0, 0);
 
-  bokehPass.uniforms['focus'].value = 10.0;
-
   // Buoy loop
+  buoyGroup.visible = buoyenabled;
   const { h: bh, dx: bdx, dy: bdy } = getWaveInfo(bwp.x, bwp.y, t);
   buoyGroup.position.z = THREE.MathUtils.lerp(buoyGroup.position.z, bh - 0.24, 0.05);
   _norm.set(-bdx + 0.2*Math.sin(t), -bdy, 1).normalize();
@@ -322,44 +322,46 @@ function tick() {
   buoyLightObj.material.emissiveIntensity = 1.5 + 1.5*Math.sin(2*t);
   
   // Rain loop
-  for (let i = 0; i < rainpos.count; i += 2) {
-    
-    const x = rainpos.getX(i); const y = rainpos.getY(i); const z = rainpos.getZ(i);
-    const tx = rainpos.getX(i + 1); const ty = rainpos.getY(i + 1); const tz = rainpos.getZ(i + 1);
+  rain.visible = rainenabled;
+  if (rainenabled) {
+    for (let i = 0; i < rainpos.count; i += 2) {
+      const x = rainpos.getX(i); const y = rainpos.getY(i); const z = rainpos.getZ(i);
+      const tx = rainpos.getX(i + 1); const ty = rainpos.getY(i + 1); const tz = rainpos.getZ(i + 1);
 
-    const fallSpeed = 0.4;
+      const fallSpeed = 0.4;
 
-    if (z < -1) {
-      const vx = (wx + 0.05 * (Math.random() - 0.5)) * 0.05;
-      const vy = (wy + 0.05 * (Math.random() - 0.5)) * 0.05;
+      if (z < -1) {
+        const vx = (wx + 0.05 * (Math.random() - 0.5)) * 0.05;
+        const vy = (wy + 0.05 * (Math.random() - 0.5)) * 0.05;
 
-      const px = (Math.random() - 0.5) * 15.0 + 1.0;
-      const py = (Math.random() - 0.5) * 15.0 - 6.0;
-      const newZ = Math.random() * 10 + 5;
+        const px = (Math.random() - 0.5) * 15.0 + 1.0;
+        const py = (Math.random() - 0.5) * 15.0 - 6.0;
+        const newZ = Math.random() * 10 + 5;
 
-      rainpos.setXYZ(i, px, py, newZ);
-      rainpos.setXYZ(i + 1, px + vx, py + vy, newZ - 0.2 - (Math.random() * 0.05));
+        rainpos.setXYZ(i, px, py, newZ);
+        rainpos.setXYZ(i + 1, px + vx, py + vy, newZ - 0.2 - (Math.random() * 0.05));
 
-      rainvel.setXYZ(i, vx, vy, 0);     
-      rainvel.setXYZ(i + 1, vx, vy, 0); 
-      
-      continue;
+        rainvel.setXYZ(i, vx, vy, 0);     
+        rainvel.setXYZ(i + 1, vx, vy, 0); 
+        
+        continue;
+      }
+
+      const vx = rainvel.getX(i);
+      const vy = rainvel.getY(i);
+
+      rainpos.setXYZ(i, x + vx, y + vy, z - fallSpeed);
+      rainpos.setXYZ(i + 1, tx + vx, ty + vy, tz - fallSpeed);
     }
-
-    const vx = rainvel.getX(i);
-    const vy = rainvel.getY(i);
-
-    rainpos.setXYZ(i, x + vx, y + vy, z - fallSpeed);
-    rainpos.setXYZ(i + 1, tx + vx, ty + vy, tz - fallSpeed);
+    rainvel.needsUpdate = true;
+    rainpos.needsUpdate = true;
   }
-  rainvel.needsUpdate = true;
-  rainpos.needsUpdate = true;
 
   // Fog
-  scene.fog.density = 0.1 + 0.04 * Math.sin(0.05 * t);
+  scene.fog.density = 0.1 + 0.08 * Math.sin(0.1 * t);
 
   // Lightning
-  lightning.next -= dt;
+  if (thunderenabled) { lightning.next -= dt; } else { lightning.active = false; };
 
   if (lightning.next <= 0) {
     lightning.active = true;
@@ -393,6 +395,17 @@ function tick() {
   if (creakingnext < 0 && audio) {
     creakingnext = Math.random() * 7 + 3.0;
     playRandomCreaking(Math.random() * 0.2 + 0.8);
+  }
+
+  if (postprocessingenabled) {
+    bokehPass.enabled = true;
+    bokehPass.uniforms['focus'].value = 10.0 + 2*Math.sin(t);
+    bloomPass.enabled = true;
+    vignettePass.enabled = true;
+  } else {
+    bokehPass.enabled = false;
+    bloomPass.enabled = false;
+    vignettePass.enabled = false;
   }
 
   composer.render();
