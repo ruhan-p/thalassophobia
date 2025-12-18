@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { audio, thunderAudio, creakingAudio } from "./ui.js";
-import switches from "./ui.js";
+import { switches } from "./ui.js";
+import { waveuniforms } from "./ui.js";
 
 // Post-Processing Imports
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
@@ -31,7 +32,7 @@ function hexToVec3(hex) {
 }
 
 const tintcolor = 0x555a5f;
-const watercolor = '#555a5f';
+const watercolor = '#37414a';
 const buoycolor = 0xff8f80;
 const flashcolor = 0xb4c1d1;
 const tintColorBase = new THREE.Color(tintcolor);
@@ -45,7 +46,7 @@ camera.position.set(0, -10, 0);
 scene.add(camera);
 
 const getWaveInfo = (x, y, t) => {
-  const { amp1, amp2, freq1, freq2, speed1, speed2 } = customUniforms;
+  const { amp1, amp2, freq1, freq2, speed1, speed2 } = uniforms;
 
   let h = 0; let dx = 0; let dy = 0;
 
@@ -74,20 +75,10 @@ renderer.setPixelRatio(1);
 renderer.setClearColor(0x020617);
 
 // Uniforms
+const waveuniformmap = Object.fromEntries( Object.entries(waveuniforms).map(([k, v]) => [k, { value: v }]) );
 const customUniforms = {
   time: { value: 0.0 },
-  amp1: { value: 0.6 },
-  amp2: { value: 0.5 },
-  freq1: { value: 0.5 },
-  freq2: { value: 0.8 },
-  speed1: { value: 0.25 },
-  speed2: { value: 0.20 },
-  amp3: { value: 0.12 },
-  amp4: { value: 0.12 },
-  freq3: { value: 1.0 },
-  freq4: { value: 0.8 },
-  speed3: { value: 0.2 },
-  speed4: { value: 0.4 },
+  ...waveuniformmap,
   steep: { value: 1.0 },
   smallIterations: { value: 4.0 },
   color1: { value: hexToVec3('#020406') },
@@ -278,13 +269,13 @@ window.addEventListener("resize", () => {
   composer.setSize(width, height);
 });
 
-// Event Listeners / Color linkage
+// Event Listeners
 document.addEventListener("tintcolor-change", (event) => {
   if (event?.detail) {
     tintColorBase.set(event.detail);
     scene.background.copy(tintColorBase);
     scene.fog.color.copy(tintColorBase);
-    customUniforms.fogColor.value.copy(tintColorBase);
+    uniforms.fogColor.value.copy(tintColorBase);
     lightning.baseColor.copy(tintColorBase);
   }
 });
@@ -296,10 +287,19 @@ document.addEventListener("watercolor-change", (event) => {
 });
 
 document.addEventListener("buoycolor-change", (event) => {
-  const hex = event?.detail;
-  const value = parseInt(hex.replace("#", ""), 16);
-  buoyLight?.color.setHex(value);
-  buoyLightObj?.material.emissive.setHex(value);
+  if (event?.detail) {
+    const hex = event.detail;
+    const value = parseInt(hex.replace("#", ""), 16);
+    buoyLight?.color.setHex(value);
+    buoyLightObj?.material.emissive.setHex(value);
+  }
+});
+
+document.addEventListener("waveuniform-change", (event) => {
+  if (event?.detail) {
+    const { key, value } = event.detail;
+    uniforms[key].value = value;
+  }
 });
 
 // Animation loop
@@ -323,6 +323,7 @@ function tick() {
 
   // Updates
   uniforms.time.value = t;
+  let lerpAlpha = uniforms.speed1.value / 5;
 
   // Wind
   const wx = 2 * Math.cos(t*0.05 + 56.78);
@@ -330,25 +331,25 @@ function tick() {
 
   // Camera loop
   const { h, dx, dy } = getWaveInfo(cwp.x, cwp.y, t);
-  camera.position.z = THREE.MathUtils.lerp(camera.position.z, h, 0.1);
+  camera.position.z = THREE.MathUtils.lerp(camera.position.z, h, 2*lerpAlpha);
 
   _norm.set(-dx, -dy, 1).normalize();
   _norm.transformDirection(watersurf.matrixWorld);
 
-  csmooth.lerp(_norm, 0.05);
-  if (switches.tilt) camera.up.copy(csmooth);
+  csmooth.lerp(_norm, lerpAlpha);
+  if (switches.tilt)  { camera.up.copy(csmooth); } else { camera.up.copy(_up); };
   camera.lookAt(0, 0, 0);
 
   // Buoy loop
   buoyGroup.visible = switches.buoy;
   const { h: bh, dx: bdx, dy: bdy } = getWaveInfo(bwp.x, bwp.y, t);
-  buoyGroup.position.z = THREE.MathUtils.lerp(buoyGroup.position.z, bh - 0.24, 0.05);
+  buoyGroup.position.z = THREE.MathUtils.lerp(buoyGroup.position.z, bh - 0.24, lerpAlpha);
   _norm.set(-bdx + 0.2*Math.sin(t), -bdy, 1).normalize();
   _norm.transformDirection(watersurf.matrixWorld);
   _quat.setFromUnitVectors(_up, _norm);
   buoySpinQuat.setFromAxisAngle(_up, 2*Math.sin(0.05*t));
   _quat.multiply(buoySpinQuat);
-  buoyGroup.quaternion.slerp(_quat, 0.1);
+  buoyGroup.quaternion.slerp(_quat, 2*lerpAlpha);
 
   buoyLight.intensity = 0.15 + 0.15*Math.sin(2*t);
   buoyLightObj.material.emissiveIntensity = 1.5 + 1.5*Math.sin(2*t);

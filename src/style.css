@@ -7,7 +7,7 @@ body {
 }
 
 /* Canvas */
-canvas {
+#webgl {
   display: block;
   position: fixed;
   top: 0;
@@ -160,17 +160,22 @@ dialog::backdrop {
   position: absolute;
   inset: 32px 32px auto auto;
 }
-
 .controls {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-areas: 
+  "switches colorpickers"
+  "wavecontrols colorpickers";
   flex-direction: column;
   gap: 12px;
 }
+
+/* Switches */
 .switches {
   display: grid;
+  grid-area: switches;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
+  margin-right: 32px;
   align-items: center;
 }
 .switch {
@@ -209,11 +214,17 @@ dialog::backdrop {
 .switch .input:checked + .slider::before {
   transform: translateX(16px);
 }
-
 .switchlabel {
   margin: 0;
-}
+} 
 
+/* Color Pickers */
+.colorpickers {
+  display: flex;
+  grid-area: colorpickers;
+  flex-direction: column;
+  gap: 8px;
+}
 .colorpicker {
   display: flex;
   flex-direction: column;
@@ -241,7 +252,7 @@ dialog::backdrop {
 }
 .colorpicker__saturation {
   position: relative;
-  height: 80px;
+  height: 120px;
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid rgba(112, 126, 148, 0.4);
@@ -281,4 +292,78 @@ dialog::backdrop {
 }
 .colorpicker__pointer--hue {
   top: 50%;
+}
+
+/* Wave Controls */
+#waveCanvas {
+  grid-area: wave;
+  height: 120px;
+  width: 280px;
+  border-radius: 8px;
+  border: 1px solid rgb(112, 126, 148);
+}
+.wavecontrols {
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid rgb(112, 126, 148);
+  grid-area: wavecontrols;
+  display: grid;
+  grid-template-areas: 
+  "wave wave wave wave wave"
+  "kl dg1 dg2 dg3 dg4";
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.wavecontrols span {
+  font-size: 10px;
+}
+.dial-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.dial {
+  place-self: center;
+}
+.dial::before {
+  background: rgb(112, 126, 148);
+  width: 8em;
+  height: 8em;
+  border-radius: 50%;
+}
+.dial::before, .knob {
+  width: 48px;
+  height: 48px;
+  position: relative;
+}
+.knob::before,
+.knob::after,
+.dial::before {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+}
+.knob::before {
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  background: #fff;
+}
+.knob__val {
+  margin-top: 8px;
+  margin-left: 18%;
+  color: rgb(112, 126, 148);
+  width: 42px;
+}
+.dial-labels {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+.dial__label {
+  writing-mode: vertical-lr;
 }

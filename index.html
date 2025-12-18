@@ -44,8 +44,8 @@
       </div>
     </div>
     <dialog class="settingsdialog">
+      <h2>Settings</h2>
       <div class="controls">
-        <h2>Settings</h2>
         <div class="switches">
           <label class="switch" id="s-post">
             <span class="switchlabel">Post</span>
@@ -78,50 +78,120 @@
             <span class="slider"></span>
           </label>
         </div>
-        <div class="colorpicker" aria-label="Tint color picker">
-          <div class="colorpicker__row">
-            <span class="switchlabel">Tint</span>
-            <span class="colorpicker__chip">
-              <span id="tint-value" class="colorpicker__value">#555a5f</span>
-              <span id="tint-preview" class="colorpicker__swatch" aria-hidden="true"></span>
-            </span>
+        <div class="colorpickers">
+          <div class="colorpicker" aria-label="Tint color picker">
+            <div class="colorpicker__row">
+              <span class="switchlabel">Tint</span>
+              <span class="colorpicker__chip">
+                <span id="tint-value" class="colorpicker__value">#555a5f</span>
+                <span id="tint-preview" class="colorpicker__swatch" aria-hidden="true"></span>
+              </span>
+            </div>
+            <div class="colorpicker__saturation" id="tint-sat">
+              <div class="colorpicker__saturation-white"></div>
+              <div class="colorpicker__saturation-black"></div>
+              <div class="colorpicker__pointer" id="tint-sat-pointer"></div>
+            </div>
+            <div class="colorpicker__hue" id="tint-hue" aria-label="Hue slider">
+              <div class="colorpicker__pointer colorpicker__pointer--hue" id="tint-hue-pointer"></div>
+            </div>
           </div>
-          <div class="colorpicker__saturation" id="tint-sat">
-            <div class="colorpicker__saturation-white"></div>
-            <div class="colorpicker__saturation-black"></div>
-            <div class="colorpicker__pointer" id="tint-sat-pointer"></div>
+          <div class="colorpicker" aria-label="Water color picker">
+            <div class="colorpicker__row">
+              <span class="switchlabel">Water</span>
+              <span class="colorpicker__chip">
+                <span id="water-value" class="colorpicker__value">#141a20</span>
+                <span id="water-preview" class="colorpicker__swatch" aria-hidden="true"></span>
+              </span>
+            </div>
+            <div class="colorpicker__hue" id="water-hue" aria-label="Hue slider">
+              <div class="colorpicker__pointer colorpicker__pointer--hue" id="water-hue-pointer"></div>
+            </div>
           </div>
-          <div class="colorpicker__hue" id="tint-hue" aria-label="Hue slider">
-            <div class="colorpicker__pointer colorpicker__pointer--hue" id="tint-hue-pointer"></div>
+          <div class="colorpicker" aria-label="Buoy light color picker">
+            <div class="colorpicker__row">
+              <span class="switchlabel">Buoy</span>
+              <span class="colorpicker__chip">
+                <span id="buoy-value" class="colorpicker__value">#141a20</span>
+                <span id="buoy-preview" class="colorpicker__swatch" aria-hidden="true"></span>
+              </span>
+            </div>
+            <div class="colorpicker__saturation" id="buoy-sat">
+              <div class="colorpicker__saturation-white"></div>
+              <div class="colorpicker__saturation-black"></div>
+              <div class="colorpicker__pointer" id="buoy-sat-pointer"></div>
+            </div>
+            <div class="colorpicker__hue" id="buoy-hue" aria-label="Hue slider">
+              <div class="colorpicker__pointer colorpicker__pointer--hue" id="buoy-hue-pointer"></div>
+            </div>
           </div>
         </div>
-        <div class="colorpicker" aria-label="Water color picker">
-          <div class="colorpicker__row">
-            <span class="switchlabel">Water</span>
-            <span class="colorpicker__chip">
-              <span id="water-value" class="colorpicker__value">#141a20</span>
-              <span id="water-preview" class="colorpicker__swatch" aria-hidden="true"></span>
-            </span>
+        <div class="wavecontrols">
+          <canvas id="waveCanvas"></canvas>
+          <div class="dial-labels">
+            <span class="dial__label">Amp</span>
+            <span class="dial__label">Freq</span>
+            <span class="dial__label">Speed</span>
           </div>
-          <div class="colorpicker__hue" id="water-hue" aria-label="Hue slider">
-            <div class="colorpicker__pointer colorpicker__pointer--hue" id="water-hue-pointer"></div>
+          <div class="dial-group">
+            <span style="color: #aa6262">Wave 1</span>
+            <div class="dial" id="amp1-dial">
+              <div class="knob" id="amp1-knob"></div>
+              <span class="knob__val" id="amp1-val">0.60</span>
+            </div>
+            <div class="dial" id="freq1-dial">
+              <div class="knob" id="freq1-knob"></div>
+              <span class="knob__val" id="freq1-val">0.50</span>
+            </div>
+            <div class="dial" id="speed1-dial">
+              <div class="knob" id="speed1-knob"></div>
+              <span class="knob__val" id="speed1-val">0.25</span>
+            </div>
           </div>
-        </div>
-        <div class="colorpicker" aria-label="Buoy light color picker">
-          <div class="colorpicker__row">
-            <span class="switchlabel">Buoy</span>
-            <span class="colorpicker__chip">
-              <span id="buoy-value" class="colorpicker__value">#141a20</span>
-              <span id="buoy-preview" class="colorpicker__swatch" aria-hidden="true"></span>
-            </span>
+          <div class="dial-group">
+            <span style="color: #6786ad">Wave 2</span>
+            <div class="dial" id="amp2-dial">
+              <div class="knob" id="amp2-knob"></div>
+              <span class="knob__val" id="amp2-val">0.12</span>
+            </div>
+            <div class="dial" id="freq2-dial">
+              <div class="knob" id="freq2-knob"></div>
+              <span class="knob__val" id="freq2-val">1.00</span>
+            </div>
+            <div class="dial" id="speed2-dial">
+              <div class="knob" id="speed2-knob"></div>
+              <span class="knob__val" id="speed2-val">0.20</span>
+            </div>
           </div>
-          <div class="colorpicker__saturation" id="buoy-sat">
-            <div class="colorpicker__saturation-white"></div>
-            <div class="colorpicker__saturation-black"></div>
-            <div class="colorpicker__pointer" id="buoy-sat-pointer"></div>
+          <div class="dial-group">
+            <span style="color: #5da088">Wave 3</span>
+            <div class="dial" id="amp3-dial">
+              <div class="knob" id="amp3-knob"></div>
+              <span class="knob__val" id="amp3-val">0.12</span>
+            </div>
+            <div class="dial" id="freq3-dial">
+              <div class="knob" id="freq3-knob"></div>
+              <span class="knob__val" id="freq3-val">1.00</span>
+            </div>
+            <div class="dial" id="speed3-dial">
+              <div class="knob" id="speed3-knob"></div>
+              <span class="knob__val" id="speed3-val">0.20</span>
+            </div>
           </div>
-          <div class="colorpicker__hue" id="buoy-hue" aria-label="Hue slider">
-            <div class="colorpicker__pointer colorpicker__pointer--hue" id="buoy-hue-pointer"></div>
+          <div class="dial-group">
+            <span style="color: #ae9860">Wave 4</span>
+            <div class="dial" id="amp4-dial">
+              <div class="knob" id="amp4-knob"></div>
+              <span class="knob__val" id="amp4-val">0.12</span>
+            </div>
+            <div class="dial" id="freq4-dial">
+              <div class="knob" id="freq4-knob"></div>
+              <span class="knob__val" id="freq4-val">1.00</span>
+            </div>
+            <div class="dial" id="speed4-dial">
+              <div class="knob" id="speed4-knob"></div>
+              <span class="knob__val" id="speed4-val">0.20</span>
+            </div>
           </div>
         </div>
       </div>

@@ -25,15 +25,13 @@ export { audio, thunderAudio, creakingAudio };
 
 // Settings
 let showsettings = false;
-const switches = { post: true, rain: true, thunder: true, buoy: true, tilt: true, fog: true, };
-export default switches;
+export const switches = { post: true, rain: true, thunder: true, buoy: true, tilt: true, fog: true, };
 
 function bindToggle(id, key) {
   const el = document.getElementById(id);
   if (!el) return;
   el.addEventListener("change", (e) => {
     switches[key] = e.target.checked;
-    console.log(switches);
   });
 }
 
@@ -86,7 +84,21 @@ settingsBtn?.addEventListener("click", () => {
   showsettings = !showsettings;
 });
 
-// Color pickers
+function attachDrag(el, handler) {
+  el.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    handler(event);
+    const move = (e) => { e.preventDefault(); handler(e); };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  });
+}
+
+// Helpers
 function clamp01(v) { return Math.min(1, Math.max(0, v)); }
 
 function hexToRgb(hex) {
@@ -154,20 +166,15 @@ function hexToHsv(hex) {
   return rgbToHsv(r, g, b);
 }
 
-function attachDrag(el, handler) {
-  el.addEventListener("pointerdown", (event) => {
-    event.preventDefault();
-    handler(event);
-    const move = (e) => { e.preventDefault(); handler(e); };
-    const up = () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
-    };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
-  });
+function valueToDeg(value, min, max) {
+  return 360 * clamp01((value - min) / (max - min));
 }
 
+function degToValue(deg, min, max) {
+  return min + (deg / 360) * (max - min);
+}
+
+// Color Pickers
 function createColorPicker(prefix, defaultHex, eventName) {
   const valueEl = document.getElementById(`${prefix}-value`);
   const previewEl = document.getElementById(`${prefix}-preview`);
@@ -180,7 +187,7 @@ function createColorPicker(prefix, defaultHex, eventName) {
 
   const state = hexToHsv(defaultHex);
 
-  const render = (skipEmit = false) => {
+  const render = (skip = false) => {
     const hex = hsvToHex(state.h, state.s, state.v);
     valueEl.textContent = hex;
     previewEl.style.background = hex;
@@ -192,7 +199,7 @@ function createColorPicker(prefix, defaultHex, eventName) {
       satPointerEl.style.top = `${(1 - state.v) * 100}%`;
     }
 
-    if (!skipEmit) {
+    if (!skip) {
       document.dispatchEvent(new CustomEvent(eventName, { detail: hex }));
     }
   };
@@ -218,7 +225,98 @@ function createColorPicker(prefix, defaultHex, eventName) {
   render(true);
 }
 
-const tintDefaultHex = "#555a5f"; const waterDefaultHex = "#141a20"; const buoyDefaultHex = "#ff8f80";
-createColorPicker("tint", tintDefaultHex, "tintcolor-change");
-createColorPicker("water", waterDefaultHex, "watercolor-change");
-createColorPicker("buoy", buoyDefaultHex, "buoycolor-change");
+createColorPicker("tint", "#555a5f", "tintcolor-change");
+createColorPicker("water", "#37414a", "watercolor-change");
+createColorPicker("buoy", "#ff8f80", "buoycolor-change");
+
+// Wave Controls
+export const waveuniforms = {
+  amp1: 0.6,  freq1: 0.5,  speed1: 0.25,
+  amp2: 0.5,  freq2: 0.5,  speed2: 0.2,
+  amp3: 0.12,  freq3: 1.0,  speed3: 0.2,
+  amp4: 0.12,  freq4: 0.8,  speed4: 0.4,
+};
+
+function createKnob(prefix, defaultVal, min, max) {
+  const knobEl = document.getElementById(`${prefix}-knob`);
+  const valEl = document.getElementById(`${prefix}-val`);
+
+  if (!knobEl || !valEl) return;
+
+  let value = defaultVal;
+  let deg = valueToDeg(value, min, max);
+
+  const render = (skip = false) => {
+    knobEl.style.transform = `rotate(${deg}deg)`;
+    valEl.textContent = value.toFixed(2);
+    waveuniforms[prefix] = value;
+
+    if (!skip) {
+      document.dispatchEvent(new CustomEvent("waveuniform-change", { detail: {key: prefix, value} }));
+    }
+  };
+
+  attachDrag(knobEl, (event) => {
+    const r = knobEl.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+
+    const dx = event.clientX - cx;
+    const dy = event.clientY - cy;
+
+    deg = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+    deg = (deg + 360) % 360;
+
+    value = degToValue(deg, min, max);
+    render();
+  });
+
+  render(true);
+}
+
+const defaults = {
+  amp:   [0.6, 0.5, 0.12, 0.12],
+  freq:  [0.5, 0.8, 1.0, 0.8],
+  speed: [0.25, 0.2, 0.2, 0.4]
+};
+
+for (let i = 1; i <= 4; i++) {
+  (["amp", "freq", "speed"]).forEach((p) => {
+    createKnob(`${p}${i}`, defaults[p][i - 1], 0.0, 3.0);
+  });
+}
+
+const canvas = document.getElementById('waveCanvas');
+const ctx = canvas.getContext('2d');
+
+let phases = [0, 0, 0, 0];
+
+function animateWave() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const waves = [
+    { amp: waveuniforms.amp1, freq: waveuniforms.freq1, speed: waveuniforms.speed1, color: "#aa6262" },
+    { amp: waveuniforms.amp2, freq: waveuniforms.freq2, speed: waveuniforms.speed2, color: "#6786ad" },
+    { amp: waveuniforms.amp3, freq: waveuniforms.freq3, speed: waveuniforms.speed3, color: "#5da088" },
+    { amp: waveuniforms.amp4, freq: waveuniforms.freq4, speed: waveuniforms.speed4, color: "#ae9860" },
+  ];
+
+  for (let i = 0; i < waves.length; i++) {
+    const w = waves[i];
+
+    ctx.beginPath();
+    for (let x = 0; x < canvas.width; x++) {
+      const y = w.amp * 20 * Math.sin((x + phases[i]) * w.freq / 25) + canvas.height / 2;
+      if (x === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+
+    ctx.strokeStyle = w.color;
+    ctx.stroke();
+    phases[i] += w.speed * 2;
+  }
+
+  requestAnimationFrame(animateWave);
+}
+
+animateWave();
