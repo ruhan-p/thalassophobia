@@ -391,7 +391,7 @@ function tick() {
   }
 
   // Fog
-  if (switches.fog) { scene.fog.density = 0.1 + 0.08 * Math.sin(0.1 * t) } else { scene.fog.density = 0; };
+  if (switches.fog) { scene.fog.density = 0.1 + 0.02 * Math.sin(0.1 * t) } else { scene.fog.density = 0; };
 
   // Lightning
   if (switches.thunder) { lightning.next -= dt; } else { lightning.active = false; };

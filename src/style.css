@@ -160,6 +160,9 @@ dialog::backdrop {
   position: absolute;
   inset: 32px 32px auto auto;
 }
+.settingsdialog h2 {
+  text-align: center;
+}
 .controls {
   display: grid;
   grid-template-areas: 

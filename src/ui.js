@@ -30,8 +30,14 @@ export const switches = { post: true, rain: true, thunder: true, buoy: true, til
 function bindToggle(id, key) {
   const el = document.getElementById(id);
   if (!el) return;
-  el.addEventListener("change", (e) => {
-    switches[key] = e.target.checked;
+  const input = el.querySelector('input[type="checkbox"]');
+  if (!input) return;
+
+  input.defaultChecked = true;
+  input.checked = true;
+
+  input.addEventListener("change", () => {
+    switches[key] = input.checked;
   });
 }
 
