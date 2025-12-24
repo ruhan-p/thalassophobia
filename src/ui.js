@@ -10,8 +10,8 @@ const assetUrl = (p) => new URL(`../assets/${p}`, import.meta.url).toString();
 
 // Audio
 let audio = false;
-const rainAudio = new Audio(assetUrl("rain.mp3")),
-const wavesAudio = new Audio(assetUrl("waves.mp3")),
+const rainAudio = new Audio(assetUrl("rain.mp3"));
+const wavesAudio = new Audio(assetUrl("waves.mp3"));
 const thunderAudio = [
   new Audio(assetUrl("thunder1.mp3")),
   new Audio(assetUrl("thunder2.mp3")),
