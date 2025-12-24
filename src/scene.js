@@ -12,6 +12,7 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { VignetteShader } from "three/examples/jsm/shaders/VignetteShader.js";
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
+const assetUrl = (p) => new URL(`../assets/${p}`, import.meta.url).toString();
 const shaderUrl = (p) => new URL(`./shaders/${p}`, import.meta.url).toString();
 
 const watervertex = await fetch(shaderUrl("watervertex.glsl")).then(r => r.text());
@@ -141,13 +142,13 @@ buoyLight2.position.set(1, 0, 0.5);
 buoyGroup.add(buoyLight2);
 
 const loader = new OBJLoader();
-loader.load( './../assets/buoy.obj', function ( obj ) {
+loader.load(assetUrl('buoy.obj'), function ( obj ) {
   obj.rotation.set(Math.PI/2, 0, 0);
   obj.scale.set(0.03, 0.03, 0.03);
 
   const texLoader = new THREE.TextureLoader();
-  const colortex = texLoader.load("./../assets/buoy_basecolor.png");
-  const roughnesstex = texLoader.load("./../assets/buoy_roughness.png");
+  const colortex = texLoader.load(assetUrl('buoy_basecolor.png'));
+  const roughnesstex = texLoader.load(assetUrl('buoy_roughness.png'));
 
   colortex.colorSpace = THREE.SRGBColorSpace;
   roughnesstex.colorSpace = THREE.NoColorSpace;
