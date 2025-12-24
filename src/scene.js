@@ -139,13 +139,13 @@ buoyLight2.position.set(1, 0, 0.5);
 buoyGroup.add(buoyLight2);
 
 const loader = new OBJLoader();
-loader.load( '../assets/buoy.obj', function ( obj ) {
+loader.load( './../assets/buoy.obj', function ( obj ) {
   obj.rotation.set(Math.PI/2, 0, 0);
   obj.scale.set(0.03, 0.03, 0.03);
 
   const texLoader = new THREE.TextureLoader();
-  const colortex = texLoader.load("../assets/buoy_basecolor.png");
-  const roughnesstex = texLoader.load("../assets/buoy_roughness.png");
+  const colortex = texLoader.load("./../assets/buoy_basecolor.png");
+  const roughnesstex = texLoader.load("./../assets/buoy_roughness.png");
 
   colortex.colorSpace = THREE.SRGBColorSpace;
   roughnesstex.colorSpace = THREE.NoColorSpace;
