@@ -5,18 +5,21 @@ window.addEventListener("load", () => {
   })
 });
 
+const assetUrl = (p) => new URL(`../assets/${p}`, import.meta.url).toString();
+
+
 // Audio
 let audio = false;
-const rainAudio = new Audio("./../assets/rain.mp3");
-const wavesAudio = new Audio("./../assets/waves.mp3");
+const rainAudio = new Audio(assetUrl("rain.mp3")),
+const wavesAudio = new Audio(assetUrl("waves.mp3")),
 const thunderAudio = [
-  new Audio("./../assets/thunder1.mp3"),
-  new Audio("./../assets/thunder2.mp3"),
-  new Audio("./../assets/thunder3.mp3"),
-  new Audio("./../assets/thunder4.mp3") ];
+  new Audio(assetUrl("thunder1.mp3")),
+  new Audio(assetUrl("thunder2.mp3")),
+  new Audio(assetUrl("thunder3.mp3")),
+  new Audio(assetUrl("thunder4.mp3")) ];
 const creakingAudio = [
-  new Audio("./../assets/creaking1.mp3"),
-  new Audio("./../assets/creaking2.mp3") ];
+  new Audio(assetUrl("creaking1.mp3")),
+  new Audio(assetUrl("creaking2.mp3")) ];
 
 rainAudio.loop = true; wavesAudio.loop = true;
 rainAudio.volume = 0.5; wavesAudio.volume = 0.5;

@@ -12,8 +12,10 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { VignetteShader } from "three/examples/jsm/shaders/VignetteShader.js";
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
-import watervertex from "./shaders/watervertex.glsl";
-import waterfragment from "./shaders/waterfragment.glsl";
+const shaderUrl = (p) => new URL(`./shaders/${p}`, import.meta.url).toString();
+
+const watervertex = await fetch(shaderUrl("watervertex.glsl")).then(r => r.text());
+const waterfragment = await fetch(shaderUrl("waterfragment.glsl")).then(r => r.text());
 
 const canvas = document.querySelector("#webgl");
 const scene = new THREE.Scene();
