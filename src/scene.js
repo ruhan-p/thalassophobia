@@ -137,7 +137,7 @@ const buoyLightObj = new THREE.Mesh(new THREE.SphereGeometry(0.02, 32), new THRE
 buoyLightObj.position.set(0, 0, 0.39);
 buoyGroup.add(buoyLightObj);
 
-const buoyLight2 = new THREE.PointLight(0xffffff, 0.7, 10);
+const buoyLight2 = new THREE.PointLight(0xffffff, 0.2, 10);
 buoyLight2.position.set(1, 0, 0.5);
 buoyGroup.add(buoyLight2);
 
